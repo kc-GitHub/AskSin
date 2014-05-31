@@ -44,7 +44,7 @@ void     HM::init(void) {
 
 void     HM::poll(void) {														// task scheduler
 
-	if (int0_flag)        cc1101Recv_poll();
+	if (int0_flag > 0)    cc1101Recv_poll();
 	if (recv.data[0] > 0) recv_poll();											// trace the received string and decide what to do further
 	if (send.counter > 0) send_poll();											// something to send in the buffer?
 	if (conf.act > 0)     send_conf_poll();										// some config to be send out
@@ -441,7 +441,7 @@ void     HM::sendPeerWEATHER(uint8_t cnl, uint16_t temp, uint8_t hum, uint16_t p
 	pevt.type = 0x70;															// 0x70 -> frame-id for weather event
 	pevt.reqACK = 0x20;															// we like to get an ACK
 
-	pevt.data[0] = (temp >> 8) & 0xFF | battery.state << 7;						// temperature data
+	pevt.data[0] = ((temp >> 8) & 0xFF) | battery.state << 7;					// temperature data
 	pevt.data[1] = temp & 0xFF;
 
 	pevt.data[2] = hum;															// humidity
@@ -1648,7 +1648,7 @@ HM hm;
 
 //- interrupt handling for interface communication module to AskSin library
 void isrGDO0() {
-	int0_flag = true;
+	int0_flag = 1;
 }
 
 ISR( WDT_vect ) {
