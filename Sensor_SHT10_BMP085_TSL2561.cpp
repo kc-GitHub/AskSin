@@ -94,7 +94,7 @@ void SHT10_BMP085_TSL2561::poll_transmit(void) {
 }
 
 uint32_t SHT10_BMP085_TSL2561::calcSendSlot(void) {
-	uint32_t result = (((hm->getHMID() << 8) | hm->getMsgCnt()) * 1103515245 + 12345) >> 16;
+	uint32_t result = (((hm->getHMID() << 8) | (hm->getMsgCnt()+1)) * 1103515245 + 12345) >> 16;
 	return (result & 0xFF) + 480;
 }
 
