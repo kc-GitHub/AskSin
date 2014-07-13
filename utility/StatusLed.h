@@ -23,9 +23,9 @@ const uint16_t heartBeat[] = { 50, 200, 50, 1000};
  * Class for status led control
  */
 class StatusLed {
-	#define STATUSLED_BLINKRATE_SLOW   600
-	#define STATUSLED_BLINKRATE_FAST   300
-	#define STATUSLED_BLINKRATE_SFAST  100
+	#define STATUSLED_BLINKRATE_SLOW   300
+	#define STATUSLED_BLINKRATE_FAST   150
+	#define STATUSLED_BLINKRATE_SFAST  50
 
 	#define STATUSLED_1                1
 	#define STATUSLED_2                2
