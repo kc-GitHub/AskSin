@@ -486,7 +486,7 @@ void     HM::sendPeerRAW(uint8_t cnl, uint8_t type, uint8_t *data, uint8_t len) 
 //		pevt.len = len;																	// len of data to send
 //	}
 //	pevt.act = 1;																		// active, 1 = yes, 0 = no
-	//statusLed.setset(STATUSLED_BOTH, STATUSLED_MODE_BLINKSFAST, 1);						// blink led1 one time
+	//statusLed.setset(STATUSLED_BOTH, STATUSLED_MODE_BLINKSFAST, 1);					// blink led1 one time
 }
 void     HM::send_ACK(void) {
 	uint8_t payLoad[] = {0x00};	 														// ACK
@@ -626,7 +626,7 @@ void     HM::send_poll(void) {															// handles the send queue
 		#endif
 
 		if (pevt.act == 1) {
-			statusLed.set(STATUSLED_BOTH, STATUSLED_MODE_BLINKSFAST, 1);					// blink led 1 and led 2 once after key press
+			statusLed.set(STATUSLED_BOTH, STATUSLED_MODE_BLINKSFAST, 1);				// blink led 1 and led 2 once after key press
 		}
 	}
 	
@@ -647,7 +647,7 @@ void     HM::send_poll(void) {															// handles the send queue
 		Serial << F("-> NA ") << pTime();
 		#endif
 	}
-}																										// ready, should work
+}																						// ready, should work
 
 void     HM::send_conf_poll(void) {
 	if (send.counter > 0) return;														// send queue is busy, let's wait
