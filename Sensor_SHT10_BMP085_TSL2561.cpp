@@ -152,10 +152,6 @@ void SHT10_BMP085_TSL2561::poll(void) {
 	}
 }
 
-void SHT10_BMP085_TSL2561::setResetReason(byte _resetReason) {
-	resetReason = _resetReason;
-}
-
 //- predefined, no reason to touch ----------------------------------------------------------------------------------------
 void SHT10_BMP085_TSL2561::regInHM(uint8_t cnl, HM *instPtr) {
 	hm = instPtr;																		// set pointer to the HM module

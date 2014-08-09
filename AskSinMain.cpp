@@ -36,7 +36,11 @@ void     HM::init(void) {
 	intGDO0.nbr = cc.gdo0Int;													// make the gdo0 interrupt public
 	attachInterrupt(intGDO0.nbr,isrGDO0,FALLING);								// attach the interrupt
 
-	memcpy_P(hmId, &dParm.p[17], 3);											// initialize hmId
+	#if USE_ADRESS_SECTION == 1
+		memcpy(hmId, &dParm.p[17], 3);											// initialize hmId
+	#else
+		memcpy_P(hmId, &dParm.p[17], 3);											// initialize hmId
+	#endif
 
 	statusLed.setHandle(this);													// make the main class visible for status led
 	hm.stayAwake(1000);
@@ -331,7 +335,12 @@ void     HM::startPairing(void) {
 	statusLed.set(STATUSLED_2, STATUSLED_MODE_BLINKFAST);						// led blink in config mode
 
 	//if (powr.mode > 1) stayAwake(powr.parTO);									// stay awake for the next 30 seconds
-	memcpy_P(send_payLoad, dParm.p, 17);										// copy details out of register.h
+	#if USE_ADRESS_SECTION == 1
+		memcpy(send_payLoad, dParm.p, 17);										// copy details out of register.h
+	#else
+		memcpy_P(send_payLoad, dParm.p, 17);									// copy details out of register.h
+	#endif
+
 	send_prep(send.mCnt++,0xA2,0x00,dParm.MAID ,send_payLoad,17);
 }
 
@@ -1140,8 +1149,14 @@ void     HM::recv_PairConfig(void) {
 		//                                     SerNr
 		// l> 14 48 80 10 1E 7A AD 63 19 63 00 4A 45 51 30 37 33 31 39 30 35
 		send_payLoad[0] = 0x00; 													// INFO_SERIAL
-		memcpy_P(&send_payLoad[1], &dParm.p[3], 11);								// copy details out of register.h
-		send_prep(recv_rCnt,0x80,0x10,recv_reID,send_payLoad,11);					// prepare the message
+
+		#if USE_ADRESS_SECTION == 1
+			memcpy(&send_payLoad[1], &dParm.p[3], 11);								// copy details out of register.h
+		#else
+			memcpy_P(&send_payLoad[1], &dParm.p[3], 11);							// copy details out of register.h
+		#endif
+
+			send_prep(recv_rCnt,0x80,0x10,recv_reID,send_payLoad,11);				// prepare the message
 
 	} else if (recv_by11 == 0x0A) {		// 01, 0A, Pair_Serial
 		// description --------------------------------------------------------
@@ -1154,7 +1169,11 @@ void     HM::recv_PairConfig(void) {
 
 		// send appropriate answer ---------------------------------------------
 		// l> 1A 01 A2 00 3F A6 5C 00 00 00 10 80 02 50 53 30 30 30 30 30 30 30 31 9F 04 01 01
-		memcpy_P(send_payLoad, dParm.p, 17);										// copy details out of register.h
+		#if USE_ADRESS_SECTION == 1
+			memcpy(send_payLoad, dParm.p, 17);										// copy details out of register.h
+		#else
+			memcpy_P(send_payLoad, dParm.p, 17);									// copy details out of register.h
+		#endif
 		send_prep(send.mCnt++,0xA2,0x00,recv_reID,send_payLoad,17);
 
 	} else if (recv_by11 == 0x0E) {		// 01, 0E, ConfigStatusReq

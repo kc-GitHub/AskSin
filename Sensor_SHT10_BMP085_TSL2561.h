@@ -44,8 +44,6 @@ class SHT10_BMP085_TSL2561 {
 		uint8_t *ptrPeerList;													// pointer to list3/4 in regs struct
 		uint8_t *ptrMainList;													// pointer to list0/1 in regs struct
 
-		byte     resetReason;													// why the avr reset (from MCUSR)
-
 		long     counter;
 
 		void    configCngEvent(void);											// list1 on registered channel had changed
@@ -58,8 +56,6 @@ class SHT10_BMP085_TSL2561 {
 		void    regInHM(uint8_t cnl, HM *instPtr);											// register this module in HM on the specific channel
 		void    hmEventCol(uint8_t by3, uint8_t by10, uint8_t by11, uint8_t *data, uint8_t len); // call back address for HM for informing on events
 		void    peerAddEvent(uint8_t *data, uint8_t len);									// peer was added to the specific channel, 1st and 2nd byte shows peer channel, third and fourth byte shows peer index
-
-		void    setResetReason(uint8_t _resetReason);
 
 	protected:
 

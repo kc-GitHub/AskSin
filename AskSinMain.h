@@ -15,8 +15,10 @@
 #endif
 
 
-#define AS_DBG
-//#define AS_DBG_Explain
+#define USE_ADRESS_SECTION  1													// see Register.h
+
+#define AS_DBG																	// activate to see asksin debug infos's
+//#define AS_DBG_Explain														// activate to see more asksin debug infos's
 
 #ifdef AS_DBG || AS_DBG_Explain
 	#include "utility/Serial.h"
@@ -142,7 +144,7 @@ class HM {
 	StatusLed statusLed;																// declaration of status led
 	Battery battery;
 
-	char hmId[3];																		// own HMID
+	uint8_t hmId[3];																	// own HMID
 
 	//- homematic public protocol functions
 	void     init(void);																// Ok, initialize the HomeMatic module
