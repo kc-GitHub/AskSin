@@ -41,19 +41,15 @@ void SHT10_BMP085_TSL2561::poll_measure(void) {
 	// Disable I2C
 	TWCR = 0;
 
-	// measurement code
-	// http://www.sensirion.com/fileadmin/user_upload/customers/sensirion/Dokumente/Humidity/Sensirion_Humidity_SHT1x_Datasheet_V5.pdf
-
 	uint16_t rawData;
 	uint8_t shtError = sht10->measTemp(&rawData);
 	// Measure temperature and humidity from Sensor only if no error
 	if (!shtError) {
-		if (rawData < 990) tTemp = (rawData*0.4f-396)*-1+0x4000;
-		else tTemp = rawData*0.4f-396;
+		float temp = sht10->calcTemp(rawData);
+		tTemp = temp * 10;
 
 		sht10->measHumi(&rawData);
-		tHum = -2.0468f + 0.5872f * rawData + -4.0845E-4f * rawData * rawData;
-		tHum = ((float)tTemp/10 - 25) * (float)(0.01f + 0.00128f * rawData) + tHum;
+		tHum = sht10->calcHumi(rawData, temp);
 		//	Serial << "raw: " << rawData << "  mH: " << tHum << '\n';
 	}
 	

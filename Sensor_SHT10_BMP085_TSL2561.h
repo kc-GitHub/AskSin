@@ -70,7 +70,7 @@ class SHT10_BMP085_TSL2561 {
 		uint32_t nTime;
 		uint16_t tTiming;
 
-		uint16_t tTemp;
+		int16_t tTemp;
 		uint8_t  tHum;
 		uint16_t tPres;
 		uint32_t tLux;
