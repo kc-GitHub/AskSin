@@ -436,7 +436,7 @@ void     HM::sendPeerREMOTE(uint8_t cnl, uint8_t longPress, uint8_t lowBat) {
 //void     HM::sendPeerWEATHER(uint8_t cnl, uint16_t temp, uint8_t hum, uint16_t pres, uint32_t lux) {
 // debugging
 
-void     HM::sendPeerWEATHER(uint8_t cnl, uint16_t temp, uint8_t hum, uint16_t pres, uint32_t lux) {
+void     HM::sendPeerWEATHER(uint8_t cnl, int16_t temp, uint8_t hum, uint16_t pres, uint32_t lux) {
 	//	TEMP     => '00,4,$val=((hex($val)&0x3FFF)/10)*((hex($val)&0x4000)?-1:1)',
 	//	HUM      => '04,2,$val=(hex($val))', } },
 
@@ -450,7 +450,7 @@ void     HM::sendPeerWEATHER(uint8_t cnl, uint16_t temp, uint8_t hum, uint16_t p
 	pevt.type = 0x70;															// 0x70 -> frame-id for weather event
 	pevt.reqACK = 0x20;															// we like to get an ACK
 
-	pevt.data[0] = ((temp >> 8) & 0xFF) | battery.state << 7;					// temperature data
+	pevt.data[0] = ( (((uint8_t)(temp >> 8)) >> 1) & 0xFF) | battery.state << 7;					// temperature data
 	pevt.data[1] = temp & 0xFF;
 
 	pevt.data[2] = hum;															// humidity
