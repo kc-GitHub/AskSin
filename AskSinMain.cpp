@@ -151,7 +151,7 @@ void     HM::setPowerMode(uint8_t mode) {
 	
 	if ((mode == 3) || (mode == 4))	{													// most power savings, RX is off beside a special function where RX stay in receive for 30 sec
 		powr.parTO = 15000;																// pairing timeout
-		powr.minTO = 1000;																// stay awake for 1 seconds after sending
+		powr.minTO = 10;																// stay awake for 1 seconds after sending
 		powr.nxtTO = millis() + 4000;													// stay 4 seconds awake to finish boot time
 		set_sleep_mode(SLEEP_MODE_PWR_DOWN);											// max power saving
 	}
