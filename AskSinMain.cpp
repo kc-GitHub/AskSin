@@ -146,7 +146,7 @@ void     HM::setPowerMode(uint8_t mode) {
 		//WDTCSR = 1<<WDP0 | 1<<WDP1 | 1<<WDP2;											// 2000 ms
 		//WDTCSR = 1<<WDP0 | 1<<WDP3;													// 8000 ms
 		powr.wdTme = 250;																// store the watch dog time for adding in the poll function
-		//powr.wdTme = 8190;																// store the watch dog time for adding in the poll function
+		//powr.wdTme = 8190;															// store the watch dog time for adding in the poll function
 	}
 	
 	if ((mode == 3) || (mode == 4))	{													// most power savings, RX is off beside a special function where RX stay in receive for 30 sec
@@ -233,11 +233,11 @@ void     HM::prepEEprom(void) {
 	#endif
 
 	if (crc != getEeWo(ee[0].magicNr)) {										// compare against eeprom's magic number
-		Serial << "prep eeprom\n";
 		#ifdef RPDB_DBG
-		Serial << F("format eeprom for:\n");
-		Serial << F("peerDB, addr:") << ee[0].peerDB << F(", len:") << ee[1].peerDB << '\n';
-		Serial << F("regsDB, addr:") << ee[0].regsDB << F(", len:") << ee[1].regsDB << '\n';
+			Serial << "prep eeprom\n";
+			Serial << F("format eeprom for:\n");
+			Serial << F("peerDB, addr:") << ee[0].peerDB << F(", len:") << ee[1].peerDB << '\n';
+			Serial << F("regsDB, addr:") << ee[0].regsDB << F(", len:") << ee[1].regsDB << '\n';
 		#endif
 		
 		clrEeBl(ee[0].peerDB, ee[1].peerDB);									// format the eeprom area
@@ -252,7 +252,7 @@ void     HM::prepEEprom(void) {
 void     HM::loadDefaults(void) {
 	if (dtRegs.nbr) {
 		#ifdef RPDB_DBG
-		Serial << F("set defaults:\n");
+			Serial << F("set defaults:\n");
 		#endif
 		
 		for (uint8_t i = 0; i < dtRegs.nbr; i++) {								// step through the table
@@ -273,7 +273,7 @@ void     HM::loadDefaults(void) {
 			}
 			
 			#ifdef RPDB_DBG																// some debug message
-			Serial << F("cnl:") << t->cnl << F(", lst:") << t->lst << F(", idx:") << t->pIdx << ", addr:" << eeAddr << ", data: " << pHexPGM(t->b, t->len) << '\n';
+				Serial << F("cnl:") << t->cnl << F(", lst:") << t->lst << F(", idx:") << t->pIdx << ", addr:" << eeAddr << ", data: " << pHexPGM(t->b, t->len) << '\n';
 			#endif
 		}
 	}

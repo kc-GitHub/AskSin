@@ -54,8 +54,10 @@ void SHT10_BMP085_TSL2561::poll_measure(void) {
 	}
 	
 	if (bm180 != NULL) {														// only if we have a valid module
-		bm180->begin(0);
-		tPres = (uint16_t)(bm180->readPressure() / 100);
+		bm180->begin(BMP085_ULTRAHIGHRES);	// BMP085_ULTRALOWPOWER, BMP085_STANDARD, BMP085_HIGHRES, BMP085_ULTRAHIGHRES
+
+
+		tPres = (uint16_t)(bm180->readPressure() / 10);
 
 		if (tPres > 300) {
 			// get temperature from bmp180 if sht10 no present
