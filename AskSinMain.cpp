@@ -1156,7 +1156,7 @@ void     HM::recv_PairConfig(void) {
 			memcpy_P(&send_payLoad[1], &dParm.p[3], 11);							// copy details out of register.h
 		#endif
 
-			send_prep(recv_rCnt,0x80,0x10,recv_reID,send_payLoad,11);				// prepare the message
+		send_prep(recv_rCnt,0x80,0x10,recv_reID,send_payLoad,11);					// prepare the message
 
 	} else if (recv_by11 == 0x0A) {		// 01, 0A, Pair_Serial
 		// description --------------------------------------------------------

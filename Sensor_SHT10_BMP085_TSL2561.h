@@ -18,6 +18,7 @@
 #include "AskSinMain.h"
 #include "utility/Serial.h"
 #include "utility/Fastdelegate.h"
+#include "utility/PinChangeIntHandler.h"
 
 #include <Wire.h>
 #include <../Sensirion/Sensirion.h>
@@ -26,6 +27,12 @@
 
 #define SHT10_BMP085_TSL2561 Sensors_SHT10_BMP085_TSL2561						// module name as macro to overcome the problem of renaming functions all the time
 //#define DM_DBG																// debug message flag
+
+#define SHT10_BMP085_TSL2561_nACTION_MEASURE_INIT  1
+#define SHT10_BMP085_TSL2561_nACTION_MEASURE_L     2
+#define SHT10_BMP085_TSL2561_nACTION_CALC_L        3
+#define SHT10_BMP085_TSL2561_nACTION_MEASURE_THP   4
+#define SHT10_BMP085_TSL2561_nACTION_TRANSMIT      5
 
 const uint8_t peerOdd[] =    {};												// default settings for list3 or list4
 const uint8_t peerEven[] =   {};
@@ -73,12 +80,22 @@ class SHT10_BMP085_TSL2561 {
 		int16_t tTemp;
 		uint8_t  tHum;
 		uint16_t tPres;
+
+		uint8_t tsl2561InitCount;
+		unsigned int tsl2561Data0;
+		unsigned int tsl2561Data1;
 		uint32_t tLux;
+
+		uint8_t tsl2561IntFlag;
 
 		boolean gain;    // Gain setting, 0 = X1, 1 = X16;
 
+		void tsl2561_ISR(uint8_t pinState);
+
 		uint32_t calcSendSlot(void);
-		void     poll_measure(void);
+		uint8_t  poll_measureLightInit();
+		void     poll_measureCalcLight(void);
+		void     poll_measureTHP(void);
 		void     poll_transmit(void);
 };
 
