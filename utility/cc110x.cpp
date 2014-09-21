@@ -20,7 +20,7 @@ void    CC110x::config(uint8_t csP, uint8_t mosiP, uint8_t misoP, uint8_t sckP, 
 void    CC110x::init(void) {													// initialize CC1101
 	
 	#if defined(CC_DBG)
-	Serial << F("CC1101_init: ");
+		Serial << F("CC1101_init: ");
 	#endif
 
 	pinMode(csPin, OUTPUT);														// set pins for SPI communication
@@ -200,7 +200,7 @@ uint8_t CC110x::receiveData(uint8_t *buf) {												// read data packet from 
 //	trx868.rfState = RFSTATE_RX;														// declare to be in Rx state
 
 	#if defined(CC_DBG)																	// debug message, string should be short, otherwise program stops
-	if (buf[0] > 0) Serial << pHexL(&buf[1], buf[0]) << pTime();
+		if (buf[0] > 0) Serial << pHexL(&buf[1], buf[0]) << pTime();
 	#endif
 
 	return buf[0];																		// return the data buffer

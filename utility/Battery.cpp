@@ -86,8 +86,8 @@ void Battery::poll(void) {
  */
 uint16_t Battery::getBatteryVoltageInternal() {
 	uint16_t adcValue = getAdcValue(
-		(0<<REFS1) | (1<<REFS0),												// Voltage Reference = AVCC with external capacitor at AREF pin
-		(1<<MUX3) | (1<<MUX2) | (1<<MUX1) | (0<<MUX0)							// Input Channel = 1.1V (V BG)
+		(0 << REFS1) | (1 << REFS0),											// Voltage Reference = AVCC with external capacitor at AREF pin
+		(1 << MUX3) | (1 << MUX2) | (1 << MUX1) | (0 << MUX0)					// Input Channel = 1.1V (V BG)
 	);
 	adcValue = AVR_BANDGAP_VOLTAGE * 1023 / adcValue;							// calculate battery voltage in mV
 
@@ -99,7 +99,7 @@ uint16_t Battery::getBatteryVoltageExternal() {
 	digitalWrite(tEnablePin, LOW);
 
 	uint16_t adcValue = getAdcValue(
-		(1<<REFS1) | (1<<REFS0),												// Voltage Reference = Internal 1.1V Voltage Reference
+		(1 << REFS1) | (1 << REFS0),											// Voltage Reference = Internal 1.1V Voltage Reference
 		tAdcPin
 	);
 
@@ -116,16 +116,17 @@ uint16_t Battery::getAdcValue(uint8_t voltageReference, uint8_t inputChannel) {
 
 	ADMUX = (voltageReference | inputChannel);
 
-	ADCSRA = (1<<ADEN) | (1<<ADPS2) | (1<<ADPS1);										// Enable ADC and set ADC prescaler
+	ADCSRA = (1 << ADEN) | (1 << ADPS2) | (1 << ADPS1);							// Enable ADC and set ADC prescaler
 	for(int i = 0; i < BATTERY_NUM_MESS_ADC + BATTERY_DUMMY_NUM_MESS_ADC; i++) {
-		ADCSRA |= (1 << ADSC);															// start conversion
-		while (ADCSRA & (1 << ADSC)) {}													// wait for conversion complete
+		ADCSRA |= (1 << ADSC);													// start conversion
+		while (ADCSRA & (1 << ADSC)) {}											// wait for conversion complete
 
-		if (i >= BATTERY_DUMMY_NUM_MESS_ADC) {											// we discard the first dummy measurements
+		if (i >= BATTERY_DUMMY_NUM_MESS_ADC) {									// we discard the first dummy measurements
 			adcValue += ADCW;
 		}
 	}
-	ADCSRA &= ~(1 << ADEN);																// ADC disable
+
+	ADCSRA &= ~(1 << ADEN);														// ADC disable
 
 	adcValue = adcValue / BATTERY_NUM_MESS_ADC;
 

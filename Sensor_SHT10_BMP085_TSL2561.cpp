@@ -45,6 +45,8 @@ void SHT10_BMP085_TSL2561::poll_transmit(void) {
 		nTime = mils + (calcSendSlot() * 250) - SHT10_BMP085_TSL2561_MAX_MEASURE_TIME; // calculate the next send slot by multiplying with 250ms to get the time in millis
 	}
 
+	// hoffmann
+	nTime = mils + 10000;
 
 	hm->sendPeerWEATHER(regCnl, tTemp, tHum, tPres, tLux);						// send out the weather event
 
@@ -196,7 +198,7 @@ void SHT10_BMP085_TSL2561::poll_measureCalcLight(void) {
 	} else {
 		double lux = 0;
 		boolean luxValid = tsl2561->getLux(tsl2561Data0, tsl2561Data1, lux);
-		tLux = ((luxValid) ? lux : 65537) * 100;
+		tLux = ((luxValid) ? lux : 65535) * 100;
 
 //		Serial.print("Lux: "); Serial.println(tLux);
 //		_delay_ms (50);
