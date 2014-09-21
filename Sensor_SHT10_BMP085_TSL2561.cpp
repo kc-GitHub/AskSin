@@ -119,8 +119,7 @@ void SHT10_BMP085_TSL2561::poll(void) {
 
 	nTime += SHT10_BMP085_TSL2561_MAX_MEASURE_TIME;
 
-//	Serial.print("nAction: "); Serial.println(nAction);
-//	_delay_ms(50);
+	//Serial.print("nAction: "); Serial.println(nAction); _delay_ms(50);
 
 	if (nAction == SHT10_BMP085_TSL2561_nACTION_MEASURE_INIT) {
 
