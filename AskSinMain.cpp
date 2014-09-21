@@ -810,7 +810,6 @@ void     HM::power_poll(void) {
 
 	} else if ((powr.mode > 1) && (powr.state == 0)) {							// TRX module is off, so lets sleep for a while
 		// sleep for mode 2, 3 and 4
-//		Serial.println ("Goto sleep");	delay(100);	//hfm debug
 
 		statusLed.stop(STATUSLED_BOTH);											// stop blinking, because we are going to sleep
 		if ((powr.mode == 2) || (powr.mode == 3)) {
@@ -818,7 +817,7 @@ void     HM::power_poll(void) {
 		}
 
 //		Serial << ":";
-//		delay(100);
+//		_delay_ms(100);
 
 		ADCSRA = 0;																// disable ADC
 		uint8_t xPrr = PRR;														// turn off various modules

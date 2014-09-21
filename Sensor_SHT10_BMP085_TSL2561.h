@@ -34,6 +34,8 @@
 #define SHT10_BMP085_TSL2561_nACTION_MEASURE_THP   4
 #define SHT10_BMP085_TSL2561_nACTION_TRANSMIT      5
 
+#define SHT10_BMP085_TSL2561_MAX_MEASURE_TIME      1000
+
 const uint8_t peerOdd[] =    {};												// default settings for list3 or list4
 const uint8_t peerEven[] =   {};
 const uint8_t peerSingle[] = {};
@@ -67,8 +69,6 @@ class SHT10_BMP085_TSL2561 {
 	protected:
 
 	private:
-		#define  measureTime   1000
-
 		Sensirion *sht10;
 		BMP085 *bm180;
 		TSL2561 *tsl2561;

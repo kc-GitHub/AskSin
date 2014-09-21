@@ -17,7 +17,7 @@
 
 #define USE_ADRESS_SECTION  1													// see Register.h
 
-#define AS_DBG																	// activate to see asksin debug infos's
+//#define AS_DBG																	// activate to see asksin debug infos's
 //#define AS_DBG_Explain														// activate to see more asksin debug infos's
 
 #ifdef AS_DBG || AS_DBG_Explain

@@ -14,7 +14,7 @@ extern "C" {
 //- user code here --------------------------------------------------------------------------------------------------------
 void SHT10_BMP085_TSL2561::config(uint8_t data, uint8_t sck, uint16_t timing, Sensirion *tPtr, BMP085 *pPtr, TSL2561 *lPtr) {
 	tTiming = timing;
-	nTime = millis() + 1000;													// set the first time we like to measure
+	nTime = millis() + SHT10_BMP085_TSL2561_MAX_MEASURE_TIME;					// set the first time we like to measure
 	nAction = SHT10_BMP085_TSL2561_nACTION_MEASURE_INIT;
 	tsl2561InitCount = 0;
 
@@ -42,11 +42,9 @@ void SHT10_BMP085_TSL2561::poll_transmit(void) {
 	if (tTiming) {
 		nTime = mils + tTiming;													// there is a given timing
 	} else {
-		nTime = mils + (calcSendSlot() * 250) - measureTime;					// calculate the next send slot by multiplying with 250ms to get the time in millis
+		nTime = mils + (calcSendSlot() * 250) - SHT10_BMP085_TSL2561_MAX_MEASURE_TIME; // calculate the next send slot by multiplying with 250ms to get the time in millis
 	}
 
-	// hoffmann
-	nTime = mils + 10000;
 
 	hm->sendPeerWEATHER(regCnl, tTemp, tHum, tPres, tLux);						// send out the weather event
 
@@ -65,6 +63,7 @@ void SHT10_BMP085_TSL2561::configCngEvent(void) {
 		Serial << F("configCngEvent\n");
 	#endif
 }
+
 void SHT10_BMP085_TSL2561::pairSetEvent(uint8_t *data, uint8_t len) {
 	// we received a message from master to set a new value, typical you will find three bytes in data
 	// 1st byte = value; 2nd byte = ramp time; 3rd byte = duration time;
@@ -78,6 +77,7 @@ void SHT10_BMP085_TSL2561::pairSetEvent(uint8_t *data, uint8_t len) {
 
 	hm->sendACKStatus(regCnl,modStat,0);
 }
+
 void SHT10_BMP085_TSL2561::pairStatusReq(void) {
 	// we received a status request, appropriate answer is an InfoActuatorStatus message
 	#ifdef DM_DBG
@@ -86,6 +86,7 @@ void SHT10_BMP085_TSL2561::pairStatusReq(void) {
 
 	hm->sendInfoActuatorStatus(regCnl, modStat, 0);
 }
+
 void SHT10_BMP085_TSL2561::peerMsgEvent(uint8_t type, uint8_t *data, uint8_t len) {
 	// we received a peer event, in type you will find the marker if it was a switch(3E), remote(40) or sensor(41) event
 	// appropriate answer is an ACK
@@ -97,8 +98,6 @@ void SHT10_BMP085_TSL2561::peerMsgEvent(uint8_t type, uint8_t *data, uint8_t len
 }
 
 void SHT10_BMP085_TSL2561::poll(void) {
-	unsigned long mils = millis();
-
 	if (tsl2561IntFlag) {
 //		Serial.print("tsl2561IntFlag: "); Serial.println(tsl2561IntFlag);
 //		_delay_ms(50);
@@ -107,15 +106,18 @@ void SHT10_BMP085_TSL2561::poll(void) {
 			nAction = SHT10_BMP085_TSL2561_nACTION_CALC_L;
 		}
 
+		// reset the interrupt line
 		tsl2561->clearInterrupt();
 	}
+
+	unsigned long mils = millis();
 
 	// just polling, as the function name said
 	if ((nTime == 0) || (nTime > mils)) {										// check if it is time to jump in
 		return;
 	}
 
-	nTime += 1000;
+	nTime += SHT10_BMP085_TSL2561_MAX_MEASURE_TIME;
 
 //	Serial.print("nAction: "); Serial.println(nAction);
 //	_delay_ms(50);
@@ -162,13 +164,13 @@ uint8_t SHT10_BMP085_TSL2561::poll_measureLightInit() {
 			tsl2561Data1 = 0;
 
 		} else {
-			integrationTime = INTEGATION_TIME_402;
 
 			if ((tsl2561Data0 < 1000) && (tsl2561Data1 < 1000)) {
 				gain = ((tsl2561Data0 < 100) && (tsl2561Data1 < 100)) ? true : false;
 				integrationTime = INTEGATION_TIME_402;
+			} else {
+				integrationTime = INTEGATION_TIME_101;
 			}
-
 		}
 
 		tsl2561->setTiming(gain, integrationTime);
