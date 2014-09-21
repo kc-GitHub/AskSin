@@ -451,8 +451,8 @@ void     HM::sendPeerWEATHER(uint8_t cnl, int16_t temp, uint8_t hum, uint16_t pr
 	pevt.type = 0x70;															// 0x70 -> frame-id for weather event
 	pevt.reqACK = 0x20;															// we like to get an ACK
 
-	pevt.data[0] = ( (((uint8_t)(temp >> 8)) >> 1) & 0xFF) | battery.state << 7;	// temperature data
-	pevt.data[1] = temp & 0xFF;
+	pevt.data[0] = (temp & 0x7fff) >> 8 | battery.state << 7;					// temperature data
+	pevt.data[1] = (temp & 0xFF);
 
 	pevt.data[2] = hum;															// humidity
 
