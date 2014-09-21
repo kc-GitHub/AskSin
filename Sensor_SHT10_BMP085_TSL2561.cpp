@@ -14,7 +14,7 @@ extern "C" {
 //- user code here --------------------------------------------------------------------------------------------------------
 void SHT10_BMP085_TSL2561::config(uint8_t data, uint8_t sck, uint16_t timing, Sensirion *tPtr, BMP085 *pPtr, TSL2561 *lPtr) {
 	tTiming = timing;
-	nTime = millis() + SHT10_BMP085_TSL2561_MAX_MEASURE_TIME;					// set the first time we like to measure
+	nTime = millis() + 1000;													// set the first time we like to measure
 	nAction = SHT10_BMP085_TSL2561_nACTION_MEASURE_INIT;
 	tsl2561InitCount = 0;
 
@@ -28,12 +28,18 @@ void SHT10_BMP085_TSL2561::config(uint8_t data, uint8_t sck, uint16_t timing, Se
 
 	if (lPtr != NULL) {															// only if there is a valid module defined
 		tsl2561 = lPtr;
-		tsl2561->begin(TSL2561_ADDR_0);
-	}
 
-	// config tsl2561 interrupt pin
-	pinMode(A0, INPUT_PULLUP);													// setting the pin to input mode
-	registerInt(A0,s_dlgt(this,&SHT10_BMP085_TSL2561::tsl2561_ISR));			// setting the interrupt and port mask
+		tsl2561->begin(TSL2561_ADDR_0);
+
+		// Check if tsl2561 available
+		if (tsl2561->setPowerUp()) {
+//			tsl2561->setPowerDown();
+
+			// config tsl2561 interrupt pin
+			pinMode(A0, INPUT_PULLUP);													// setting the pin to input mode
+			registerInt(A0,s_dlgt(this,&SHT10_BMP085_TSL2561::tsl2561_ISR));			// setting the interrupt and port mask
+		}
+	}
 }
 
 void SHT10_BMP085_TSL2561::poll_transmit(void) {
@@ -44,9 +50,6 @@ void SHT10_BMP085_TSL2561::poll_transmit(void) {
 	} else {
 		nTime = mils + (calcSendSlot() * 250) - SHT10_BMP085_TSL2561_MAX_MEASURE_TIME; // calculate the next send slot by multiplying with 250ms to get the time in millis
 	}
-
-	// hoffmann
-	nTime = mils + 10000;
 
 	hm->sendPeerWEATHER(regCnl, tTemp, tHum, tPres, tLux);						// send out the weather event
 
