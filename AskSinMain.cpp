@@ -456,17 +456,17 @@ void     HM::sendPeerWEATHER(uint8_t cnl, int16_t temp, uint8_t hum, uint16_t pr
 
 	pevt.data[2] = hum;															// humidity
 
-	pevt.data[3] = (pres >> 8) & 0xFF;									// air pressure
+	pevt.data[3] = (pres >> 8) & 0xFF;											// air pressure
 	pevt.data[4] = pres & 0xFF;
 
-	pevt.data[5] = (lux >> 24) & 0xFFFFFF;								// luminosity
+	pevt.data[5] = (lux >> 24) & 0xFFFFFF;										// luminosity
 	lux = lux & 0xFFFFFF;
 	pevt.data[6] = (lux >> 16) & 0xFFFF;
 	lux = lux & 0xFFFF;
 	pevt.data[7] = (lux >> 8) & 0xFF;
 	pevt.data[8] = lux & 0xFF;
 
-	pevt.data[9] = (battery.voltage >> 8) & 0xFF;						// battery voltage
+	pevt.data[9] = (battery.voltage >> 8) & 0xFF;								// battery voltage
 	pevt.data[10] = battery.voltage & 0xFF;
 
 	pevt.len = 11;
@@ -474,29 +474,6 @@ void     HM::sendPeerWEATHER(uint8_t cnl, int16_t temp, uint8_t hum, uint16_t pr
 	pevt.msgCnt++;
 	
 	pevt.act = 1;																// active, 1 = yes, 0 = no
-}
-
-void     HM::sendPeerRAW(uint8_t cnl, uint8_t type, uint8_t *data, uint8_t len) {
-	// validate the input, and fill the respective variables in the struct
-	// message handling is taken from send_peer_poll
-	if (cnl >  dDef.cnlNbr) return;														// channel out of range, do nothing
-//	if (pevt.act) return;																// already sending an event, leave
-//	if (doesListExist(cnl,4) == 0) {													// check if a list4 exist, otherwise leave
-		//Serial << "sendPeerREMOTE failed\n";
-//		return;
-//	}
-	
-	// set variables in struct and make send_peer_poll active
-//	pevt.cnl = cnl;																		// peer database channel
-//	pevt.type = type;																	// message type
-//	pevt.mFlg = 0xA2;
-	
-//	if (len > 0) {																		// copy data if there are some
-//		memcpy(pevt.data, data, len);													// data to send
-//		pevt.len = len;																	// len of data to send
-//	}
-//	pevt.act = 1;																		// active, 1 = yes, 0 = no
-	//statusLed.setset(STATUSLED_BOTH, STATUSLED_MODE_BLINKSFAST, 1);					// blink led1 one time
 }
 
 void     HM::send_ACK(void) {
@@ -638,7 +615,7 @@ void     HM::send_poll(void) {															// handles the send queue
 		if ((powr.mode > 0) && (powr.nxtTO < (mils + powr.minTO))) stayAwake(powr.minTO); // stay awake for some time
 
 		#if defined(AS_DBG)																// some debug messages
-		Serial << F("<- ") << pHexL(send.data, send.data[0]+1) << pTime();
+			Serial << F("<- ") << pHexL(send.data, send.data[0]+1) << pTime();
 		#endif
 
 		if (pevt.act == 1) {
@@ -660,7 +637,7 @@ void     HM::send_poll(void) {															// handles the send queue
 		}
 
 		#if defined(AS_DBG)
-		Serial << F("-> NA ") << pTime();
+			Serial << F("-> NA ") << pTime();
 		#endif
 	}
 }																						// ready, should work
@@ -689,6 +666,7 @@ void     HM::send_conf_poll(void) {
 			send_prep(conf.mCnt++,0xA0,0x10,conf.reID,send_payLoad,len+1);				// prepare the message
 		//send_prep(send.mCnt++,0xA0,0x10,conf.reID,send_payLoad,len+1);				// prepare the message
 		}
+
 	} else if (conf.type == 0x02) {
 		// INFO_PARAM_RESPONSE_PAIRS message
 		//                               RegL_01:  30:06 32:50 34:4B 35:50 56:00 57:24 58:01 59:01 00:00
@@ -706,6 +684,7 @@ void     HM::send_conf_poll(void) {
 			send_prep(conf.mCnt++,0xA0,0x10,conf.reID,send_payLoad,len+1);				// prepare the message
 			//send_prep(send.mCnt++,0xA0,0x10,conf.reID,send_payLoad,len+1);			// prepare the message
 		}
+
 	} else if (conf.type == 0x03) {
 		// INFO_PARAM_RESPONSE_SEQ message
 		//                               RegL_01:  30:06 32:50 34:4B 35:50 56:00 57:24 58:01 59:01 00:00
@@ -1133,7 +1112,7 @@ void     HM::recv_PairConfig(void) {
 		// do something with the information ----------------------------------
 		if ((!conf.wrEn) || (!(conf.channel == recv_payLoad[0]))) {					// but only if we are in config mode
 			#if defined(AS_DBG)
-			Serial << F("   write data, but not in config mode\n");
+				Serial << F("   write data, but not in config mode\n");
 			#endif
 			return;
 		}
