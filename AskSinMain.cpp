@@ -72,8 +72,8 @@ void     HM::cc1101Recv_poll(void) {
 }
 
 void     HM::send_out(void) {
-	if (bitRead(send.data[2],5)) {
-		send.retries = dParm.maxRetr;											// check for ACK request and set max retries counter
+	if (bitRead(send.data[2],5) && memcmp(&send.data[7], bCast, 3) != 0) {
+		send.retries = dParm.maxRetr;											// check for ACK request and not broadcast, then set max retries counter
 	} else {
 		send.retries = 1;														// otherwise send only one time
 	}
