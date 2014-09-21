@@ -72,10 +72,12 @@ void collectPCINT(uint8_t vectInt) {
 		return;
 	}
 	
-	uint8_t bitStat = (intByte < *intMask[vectInt])?0:1;								// prepare the bit status for the pin
+	uint8_t bitStat = (intByte < *intMask[vectInt]) ? 0 : 1;							// prepare the bit status for the pin
 
 	for (uint8_t i = 0; i < pcIntNbr; i++) {											// jump through the table and search for registered function
-		if ((pcIntH[i].pcMask == vectInt) && (pcIntH[i].byMask == msk)) pcIntH[i].dlgt(bitStat);
+		if ((pcIntH[i].pcMask == vectInt) && (pcIntH[i].byMask == msk)) {
+			pcIntH[i].dlgt(bitStat);
+		}
 	}
 
 	sei();

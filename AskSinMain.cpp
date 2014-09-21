@@ -124,40 +124,40 @@ void     HM::reset(void) {
  */
 void     HM::setPowerMode(uint8_t mode) {
 
-	if        (mode == 1) {																// no power savings, RX is in receiving mode
-		set_sleep_mode(SLEEP_MODE_IDLE);												// normal power saving
+	if (mode == 1) {															// no power savings, RX is in receiving mode
+		set_sleep_mode(SLEEP_MODE_IDLE);										// normal power saving
 
-	} else if (mode == 2) {																// some power savings, RX is in burst mode
-		powr.parTO = 15000;																// pairing timeout
-		powr.minTO = 2000;																// stay awake for 2 seconds after sending
-		powr.nxtTO = millis() + 250;													// check in 250ms for a burst signal
+	} else if (mode == 2) {														// some power savings, RX is in burst mode
+		powr.parTO = 15000;														// pairing timeout
+		powr.minTO = 2000;														// stay awake for 2 seconds after sending
+		powr.nxtTO = millis() + 250;											// check in 250ms for a burst signal
 
-//		MCUSR &= ~(1<<WDRF);															// clear the reset flag
-		WDTCSR |= (1<<WDCE) | (1<<WDE);													// set control register to change and enable the watch dog
-		WDTCSR = 1<<WDP2;																// 250 ms
-		powr.wdTme = 250;																// store the watch dog time for adding in the poll function
-		set_sleep_mode(SLEEP_MODE_PWR_DOWN);											// max power saving
+//		MCUSR &= ~(1<<WDRF);													// clear the reset flag
+		WDTCSR |= (1 << WDCE) | (1 << WDE);										// set control register to change and enable the watch dog
+		WDTCSR = 1 << WDP2;														// 250 ms
+		powr.wdTme = 250;														// store the watch dog time for adding in the poll function
+		set_sleep_mode(SLEEP_MODE_PWR_DOWN);									// max power saving
 
-	} else if (mode == 3) {																// most power savings, RX is off beside a special function where RX stay in receive for 30 sec
-//		MCUSR &= ~(1<<WDRF);															// clear the reset flag
-		WDTCSR |= (1<<WDCE) | (1<<WDE);													// set control register to change and enable the watch dog
-		WDTCSR = 1<<WDP2;																// 250 ms
-		//WDTCSR = 1<<WDP1 | 1<<WDP2;													// 1000 ms
-		//WDTCSR = 1<<WDP0 | 1<<WDP1 | 1<<WDP2;											// 2000 ms
-		//WDTCSR = 1<<WDP0 | 1<<WDP3;													// 8000 ms
-		powr.wdTme = 250;																// store the watch dog time for adding in the poll function
-		//powr.wdTme = 8190;															// store the watch dog time for adding in the poll function
+	} else if (mode == 3) {														// most power savings, RX is off beside a special function where RX stay in receive for 30 sec
+//		MCUSR &= ~(1 << WDRF);													// clear the reset flag
+		WDTCSR |= (1 << WDCE) | (1 << WDE);										// set control register to change and enable the watch dog
+		WDTCSR = 1 << WDP2;														// 250 ms
+		//WDTCSR = 1 << WDP1 | 1 << WDP2;										// 1000 ms
+		//WDTCSR = 1 << WDP0 | 1 << WDP1 | 1 << WDP2;							// 2000 ms
+		//WDTCSR = 1 << WDP0 | 1 << WDP3;										// 8000 ms
+		powr.wdTme = 250;														// store the watch dog time for adding in the poll function
+		//powr.wdTme = 8190;													// store the watch dog time for adding in the poll function
 	}
 	
-	if ((mode == 3) || (mode == 4))	{													// most power savings, RX is off beside a special function where RX stay in receive for 30 sec
-		powr.parTO = 15000;																// pairing timeout
-		powr.minTO = 10;																// stay awake for 1 seconds after sending
-		powr.nxtTO = millis() + 4000;													// stay 4 seconds awake to finish boot time
-		set_sleep_mode(SLEEP_MODE_PWR_DOWN);											// max power saving
+	if ((mode == 3) || (mode == 4))	{											// most power savings, RX is off beside a special function where RX stay in receive for 30 sec
+		powr.parTO = 15000;														// pairing timeout
+		powr.minTO = 10;														// stay awake for 1 seconds after sending
+		powr.nxtTO = millis() + 4000;											// stay 4 seconds awake to finish boot time
+		set_sleep_mode(SLEEP_MODE_PWR_DOWN);									// max power saving
 	}
 
-	powr.mode = mode;																	// set power mode
-	powr.state = 1;																		// after init of the TRX module it is in RX mode
+	powr.mode = mode;															// set power mode
+	powr.state = 1;																// after init of the TRX module it is in RX mode
 	//Serial << "pwr.mode:" << powr.mode << '\n';
 }
 
@@ -229,7 +229,7 @@ void     HM::prepEEprom(void) {
 	}
 	
 	#ifdef RPDB_DBG																// some debug message
-	Serial << F("prepEEprom t_crc: ") << crc << F(", e_crc: ") << getEeWo(ee[0].magicNr) << '\n';
+		Serial << F("prepEEprom t_crc: ") << crc << F(", e_crc: ") << getEeWo(ee[0].magicNr) << '\n';
 	#endif
 
 	if (crc != getEeWo(ee[0].magicNr)) {										// compare against eeprom's magic number
@@ -272,7 +272,7 @@ void     HM::loadDefaults(void) {
 				setEeBy(eeAddr++,_pgmB(&t->b[j]));								// read from PROGMEM and write to eeprom
 			}
 			
-			#ifdef RPDB_DBG																// some debug message
+			#ifdef RPDB_DBG														// some debug message
 				Serial << F("cnl:") << t->cnl << F(", lst:") << t->lst << F(", idx:") << t->pIdx << ", addr:" << eeAddr << ", data: " << pHexPGM(t->b, t->len) << '\n';
 			#endif
 		}
@@ -424,7 +424,7 @@ void     HM::sendPeerREMOTE(uint8_t cnl, uint8_t longPress, uint8_t lowBat) {
 		lowBat = 1;
 	}
 
-	pevt.data[0] = cnl | ((longPress)?1:0) << 6 | lowBat << 7;					// construct message
+	pevt.data[0] = cnl | ((longPress) ? 1 : 0) << 6 | lowBat << 7;				// construct message
 
 	pevt.data[1] = modTbl[cnl].msgCnt++;										// increase event counter, important for switch event
 //	pevt.data[1] = dParm.cnlCnt[cnl]++;											// increase event counter, important for switch event
@@ -433,8 +433,6 @@ void     HM::sendPeerREMOTE(uint8_t cnl, uint8_t longPress, uint8_t lowBat) {
 	pevt.act = 1;																		// active, 1 = yes, 0 = no
 	//Serial << "remote; cdpIdx:" << pevt.cdpIdx << ", type:" << pHexB(pevt.type) << ", rACK:" << pHexB(pevt.reqACK) << ", msgCnt:" << pevt.msgCnt << ", data:" << pHex(pevt.data,pevt.len) << '\n';
 }
-//void     HM::sendPeerWEATHER(uint8_t cnl, uint16_t temp, uint8_t hum, uint16_t pres, uint32_t lux) {
-// debugging
 
 void     HM::sendPeerWEATHER(uint8_t cnl, int16_t temp, uint8_t hum, uint16_t pres, uint32_t lux) {
 	//	TEMP     => '00,4,$val=((hex($val)&0x3FFF)/10)*((hex($val)&0x4000)?-1:1)',
@@ -450,22 +448,22 @@ void     HM::sendPeerWEATHER(uint8_t cnl, int16_t temp, uint8_t hum, uint16_t pr
 	pevt.type = 0x70;															// 0x70 -> frame-id for weather event
 	pevt.reqACK = 0x20;															// we like to get an ACK
 
-	pevt.data[0] = ( (((uint8_t)(temp >> 8)) >> 1) & 0xFF) | battery.state << 7;					// temperature data
+	pevt.data[0] = ( (((uint8_t)(temp >> 8)) >> 1) & 0xFF) | battery.state << 7;	// temperature data
 	pevt.data[1] = temp & 0xFF;
 
 	pevt.data[2] = hum;															// humidity
 
-	pevt.data[3] = (pres >> 8) & 0xFF;											// air pressure
+	pevt.data[3] = (pres >> 8) & 0xFF;									// air pressure
 	pevt.data[4] = pres & 0xFF;
 
-	pevt.data[5] = (lux >> 24) & 0xFFFFFF;										// luminosity
+	pevt.data[5] = (lux >> 24) & 0xFFFFFF;								// luminosity
 	lux = lux & 0xFFFFFF;
 	pevt.data[6] = (lux >> 16) & 0xFFFF;
 	lux = lux & 0xFFFF;
 	pevt.data[7] = (lux >> 8) & 0xFF;
 	pevt.data[8] = lux & 0xFF;
 
-	pevt.data[9] = (battery.voltage >> 8) & 0xFF;								// battery voltage
+	pevt.data[9] = (battery.voltage >> 8) & 0xFF;						// battery voltage
 	pevt.data[10] = battery.voltage & 0xFF;
 
 	pevt.len = 11;
@@ -497,10 +495,12 @@ void     HM::sendPeerRAW(uint8_t cnl, uint8_t type, uint8_t *data, uint8_t len) 
 //	pevt.act = 1;																		// active, 1 = yes, 0 = no
 	//statusLed.setset(STATUSLED_BOTH, STATUSLED_MODE_BLINKSFAST, 1);					// blink led1 one time
 }
+
 void     HM::send_ACK(void) {
 	uint8_t payLoad[] = {0x00};	 														// ACK
 	send_prep(recv_rCnt,0x80,0x02,recv_reID,payLoad,1);
 }
+
 void     HM::send_NACK(void) {
 	uint8_t payLoad[] = {0x80};															// NACK
 	send_prep(recv_rCnt,0x80,0x02,recv_reID,payLoad,1);
@@ -604,6 +604,10 @@ void     HM::recv_poll(void) {															// handles the receive objects
 		#endif
 	}
 	
+//	if((recv.forUs) && (recv.data[2] == 0x30) && (recv_msgTp == 0x11)) {				// message for update event
+//			recv_UpdateEvent();
+//	}
+
 	if (recv.forUs) {
 		main_Jump();																	// does main sketch want's to be informed?
 	}
@@ -615,7 +619,7 @@ void     HM::recv_poll(void) {															// handles the receive objects
 void     HM::send_poll(void) {															// handles the send queue
 	unsigned long mils = millis();
 
-	if((send.counter <= send.retries) && (send.timer <= mils)) {					// not all sends done and timing is OK
+	if((send.counter <= send.retries) && (send.timer <= mils)) {						// not all sends done and timing is OK
 		
 		// here we encode and send the string
 		hm_enc(send.data);																// encode the string
@@ -813,7 +817,7 @@ void     HM::power_poll(void) {
 
 		statusLed.stop(STATUSLED_BOTH);											// stop blinking, because we are going to sleep
 		if ((powr.mode == 2) || (powr.mode == 3)) {
-			WDTCSR |= (1<<WDIE);												// enable watch dog if power mode 2 or 3
+			WDTCSR |= (1 << WDIE);												// enable watch dog if power mode 2 or 3
 		}
 
 //		Serial << ":";
@@ -825,16 +829,17 @@ void     HM::power_poll(void) {
 
 		sleep_enable();															// enable the sleep mode
 
-		MCUCR = (1<<BODS)|(1<<BODSE);											// turn off brown-out enable in software
-		MCUCR = (1<<BODS);														// must be done right before sleep
+		MCUCR = (1 << BODS) | ( 1 << BODSE);									// turn off brown-out enable in software
+		MCUCR = (1 << BODS);													// must be done right before sleep
 
+//		digitalWrite(5, 1); // debug-LED
 		sleep_cpu();															// goto sleep
-
+//		digitalWrite(5, 0); // debug-LED
 		/* wake up here */
 		
 		sleep_disable();														// disable sleep
 		if ((powr.mode == 2) || (powr.mode == 3)) {
-			WDTCSR &= ~(1<<WDIE);												// disable watch dog
+			WDTCSR &= ~(1 << WDIE);												// disable watch dog
 		}
 
 		PRR = xPrr;																// restore modules
@@ -1201,6 +1206,15 @@ void     HM::recv_PairEvent(void) {
 	// answer should be initiated by client function in user area
 
 }
+
+/**
+ * We will reboot the controller and start the update via the bootloader
+ */
+//void HM::recv_UpdateEvent(void) {
+//	wdt_enable(WDTO_30MS);														// activate the watchdog
+//	while(1) {}																	// never ending loop, so the watchdog must reset the controller
+//}
+
 void     HM::recv_PeerEvent(void) {
 	// description --------------------------------------------------------
 	//                 peer                cnl  payload
@@ -1292,6 +1306,7 @@ uint8_t  HM::isPeerKnown(uint8_t *peer) {
 	
 	return 0;																			// nothing found
 }
+
 uint8_t  HM::isPairKnown(uint8_t *pair) {
 	//Serial << "x:" << pHex(dParm.MAID,3) << " y:" << pHex(pair,3) << '\n';
 	if (memcmp(dParm.MAID, bCast, 3) == 0) return 1;									// return 1 while not paired

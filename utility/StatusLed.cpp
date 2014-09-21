@@ -28,8 +28,7 @@ void StatusLed::setHandle(void *ptr) {
 void StatusLed::poll() {
 	for (uint8_t i = 0; i < 2; i++) {
 
-		unsigned long mils = millis();
-		if ((nTime[i] > 0) && (nTime[i] <= mils )) {
+		if ((nTime[i] > 0) && (nTime[i] <= millis() )) {
 			//	Serial << "LED:" <<i << ", mode:" << mode[i] << ", bCnt:" << bCnt[i];
 
 			short toggle_nTime = 0;
@@ -117,6 +116,9 @@ void StatusLed::onOff(uint8_t mode, uint8_t ledNum) {
 }
 
 void StatusLed::toggle(uint8_t ledNum) {
-	if (state[ledNum]) off(ledNum);
-	else on(ledNum);
+	if (state[ledNum]) {
+		off(ledNum);
+	} else {
+		on(ledNum);
+	}
 }
