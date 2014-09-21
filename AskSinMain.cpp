@@ -240,7 +240,10 @@ void     HM::prepEEprom(void) {
 			Serial << F("regsDB, addr:") << ee[0].regsDB << F(", len:") << ee[1].regsDB << '\n';
 		#endif
 		
-		clrEeBl(ee[0].peerDB, ee[1].peerDB);									// format the eeprom area
+		clrEeBl(ee[0].peerDB, ee[1].peerDB);									// format the eeprom area (peerDB)
+		_delay_ms(50);															// give eeprom some time
+
+		clrEeBl(ee[0].regsDB, ee[1].regsDB);									// format the eeprom area (regsDB)
 		_delay_ms(50);															// give eeprom some time
 
 		loadDefaults();															// do we have some default settings
