@@ -15,11 +15,19 @@
 #endif
 
 
-#define USE_ADRESS_SECTION  1													// see Register.h
-#define RESET_MODE_SOFT     0
-#define RESET_MODE_HARD     1
+#define USE_ADRESS_SECTION    1												// see Register.h
+#define RESET_MODE_SOFT       0
+#define RESET_MODE_HARD       1
 
-//#define AS_DBG																	// activate to see asksin debug infos's
+#define LED_MODE_CONFIG       0													// led flashes only at config button actions
+#define LED_MODE_EVERYTIME    1													// led flashes at every actions
+
+#define POWER_MODE_ON         1													// Device is on every time
+#define POWER_MODE_BURST      2													// Device can wake up with burst
+#define POWER_MODE_SLEEP_WDT  3													// Device sleeps. The watchdog wake up the device every 250 ms
+#define POWER_MODE_SLEEP_DEEP 4													// Device sleeps. Only level interrupt wake up the device (e.g. external key press)
+
+#define AS_DBG																	// activate to see asksin debug infos's
 //#define AS_DBG_Explain														// activate to see more asksin debug infos's
 
 #ifdef AS_DBG || AS_DBG_Explain
@@ -156,6 +164,7 @@ class HM {
 	void     reset(void);																// clear peer database and register content, do a reset of the device
 	void     setPowerMode(uint8_t mode);												// set power mode for HM device
 	void     stayAwake(uint32_t xMillis);												// switch TRX module in RX mode for x milliseconds
+	void     setLedMode(uint8_t ledMode);
 
 	//- some functions for checking the config, preparing eeprom and load defaults to eeprom or in regs structure
 	void     printConfig(void);															// Ok, show the config on serial console
@@ -238,6 +247,8 @@ class HM {
 	void     send_prep(uint8_t msgCnt, uint8_t comBits, uint8_t msgType, uint8_t *targetID, uint8_t *payLoad, uint8_t payLen);
 
 	uint8_t  resetMode;																	// if set, a hm.reset resets the device to (wdt reset was triggert)
+	uint8_t  ledMode;
+
 	//- to check incoming messages if sender is known
 	uint8_t  isPeerKnown(uint8_t *peer);												// , check 3 byte peer against peer database, return 1 if found, otherwise 0
 	uint8_t  isPairKnown(uint8_t *pair);												// check 3 byte pair against List0, return 1 if pair is known, otherwise 0

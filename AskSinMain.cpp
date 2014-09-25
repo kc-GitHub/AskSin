@@ -21,13 +21,14 @@ uint8_t bCast[] = {0,0,0,0};													// broad cast address
 
 //  public://--------------------------------------------------------------------------------------------------------------
 //- homematic public protocol functions
-void     HM::init(uint8_t reset_mode) {
+void     HM::init(uint8_t resetMode) {
 	#ifdef AS_DBG || AS_DBG_Explain
 		Serial.begin(57600);													// serial setup
 		//Serial << F("AskSin debug enabled...\n");								// ...and some information
 	#endif
 
-	resetMode = reset_mode;
+	HM::resetMode = resetMode;
+
 	// register handling setup
 	prepEEprom();																// check the eeprom for first time boot, prepares the eeprom and loads the defaults
 	loadRegs();
@@ -130,12 +131,12 @@ void     HM::reset(void) {
  */
 void     HM::setPowerMode(uint8_t mode) {
 
-	if (mode == 1) {															// no power savings, RX is in receiving mode
+	if (mode == POWER_MODE_ON) {												// no power savings, RX is in receiving mode
 		set_sleep_mode(SLEEP_MODE_IDLE);										// normal power saving
 
-	} else if (mode == 2) {														// some power savings, RX is in burst mode
+	} else if (mode == POWER_MODE_BURST) {										// some power savings, RX is in burst mode
 		powr.parTO = 15000;														// pairing timeout
-		powr.minTO = 2000;														// stay awake for 2 seconds after sending
+		powr.minTO = 200;														// stay awake for 2 seconds after sending
 		powr.nxtTO = millis() + 250;											// check in 250ms for a burst signal
 
 //		MCUSR &= ~(1<<WDRF);													// clear the reset flag
@@ -144,21 +145,22 @@ void     HM::setPowerMode(uint8_t mode) {
 		powr.wdTme = 250;														// store the watch dog time for adding in the poll function
 		set_sleep_mode(SLEEP_MODE_PWR_DOWN);									// max power saving
 
-	} else if (mode == 3) {														// most power savings, RX is off beside a special function where RX stay in receive for 30 sec
+	} else if (mode == POWER_MODE_SLEEP_WDT) {									// most power savings, RX is off beside a special function where RX stay in receive for 30 sec
 //		MCUSR &= ~(1 << WDRF);													// clear the reset flag
 		WDTCSR |= (1 << WDCE) | (1 << WDE);										// set control register to change and enable the watch dog
 		WDTCSR = 1 << WDP2;														// 250 ms
+		powr.wdTme = 250;														// store the watch dog time for adding in the poll function
+
 		//WDTCSR = 1 << WDP1 | 1 << WDP2;										// 1000 ms
 		//WDTCSR = 1 << WDP0 | 1 << WDP1 | 1 << WDP2;							// 2000 ms
 		//WDTCSR = 1 << WDP0 | 1 << WDP3;										// 8000 ms
-		powr.wdTme = 250;														// store the watch dog time for adding in the poll function
 		//powr.wdTme = 8190;													// store the watch dog time for adding in the poll function
 	}
 	
-	if ((mode == 3) || (mode == 4))	{											// most power savings, RX is off beside a special function where RX stay in receive for 30 sec
+	if ((mode == POWER_MODE_SLEEP_WDT) || (mode == POWER_MODE_SLEEP_DEEP)) {	// most power savings, RX is off beside a special function where RX stay in receive for 30 sec
 		powr.parTO = 15000;														// pairing timeout
-		powr.minTO = 10;														// stay awake for 1 seconds after sending
-		powr.nxtTO = millis() + 4000;											// stay 4 seconds awake to finish boot time
+		powr.minTO = 200;														// stay awake for given ms after sending
+		powr.nxtTO = millis() + 4000;											// after power on reset we stay 4 seconds awake to finish boot time
 		set_sleep_mode(SLEEP_MODE_PWR_DOWN);									// max power saving
 	}
 
@@ -180,6 +182,10 @@ void     HM::stayAwake(uint32_t xMillis) {
 	}
 
 	powr.nxtTO = xMillis;														// stay awake for some time by setting next check time
+}
+
+void     HM::setLedMode(uint8_t ledMode) {
+	HM::ledMode = ledMode;
 }
 
 /**
@@ -572,7 +578,9 @@ void     HM::recv_poll(void) {															// handles the receive objects
 			if (pevt.act == 1) {
 				// we got an ACK after key press?
 				statusLed.stop(STATUSLED_BOTH);
-				statusLed.set(STATUSLED_1, STATUSLED_MODE_BLINKSFAST, 1);				// blink led 1 once
+				if (ledMode == LED_MODE_EVERYTIME) {
+					statusLed.set(STATUSLED_1, STATUSLED_MODE_BLINKSFAST, 1);			// blink led 1 once
+				}
 			}
 	
 		} else if (recv_msgTp == 0x11) {												// pair event handling
@@ -623,7 +631,9 @@ void     HM::send_poll(void) {															// handles the send queue
 		#endif
 
 		if (pevt.act == 1) {
-			statusLed.set(STATUSLED_BOTH, STATUSLED_MODE_BLINKSFAST, 1);				// blink led 1 and led 2 once after key press
+			if (ledMode == LED_MODE_EVERYTIME) {
+				statusLed.set(STATUSLED_BOTH, STATUSLED_MODE_BLINKSFAST, 1);			// blink led 1 and led 2 once after key press
+			}
 		}
 	}
 	
@@ -637,7 +647,9 @@ void     HM::send_poll(void) {															// handles the send queue
 		
 		if (pevt.act == 1) {
 			statusLed.stop(STATUSLED_BOTH);
-			statusLed.set(STATUSLED_2, STATUSLED_MODE_BLINKSLOW, 1);					// blink the led 2 once if key press before
+			if (ledMode == LED_MODE_EVERYTIME) {
+				statusLed.set(STATUSLED_2, STATUSLED_MODE_BLINKSLOW, 1);				// blink the led 2 once if key press before
+			}
 		}
 
 		#if defined(AS_DBG)
@@ -771,7 +783,7 @@ void     HM::power_poll(void) {
 
 	if (send.counter > 0)  return;												// send queue not empty
 	
-	if ((powr.mode == 2) && (powr.state == 0)) {
+	if ((powr.mode == POWER_MODE_BURST) && (powr.state == 0)) {
 		uint32_t nxtTO;
 
 		// power mode 2, module is in sleep and next check is reached
@@ -786,23 +798,23 @@ void     HM::power_poll(void) {
 
 		return;
 
-	} else if ((powr.mode == 2) && (powr.state == 1)) {
+	} else if ((powr.mode == POWER_MODE_BURST) && (powr.state == 1)) {
 		// power mode 2, module is active and next check is reached
 
 		cc.setPowerDownState();													// go to sleep
 		powr.state = 0;
 		powr.nxtTO = millis() + 250;											// schedule next check in 250 ms
 
-	} else if ((powr.mode >= 3) && (powr.state == 1)) {
+	} else if ((powr.mode >= POWER_MODE_SLEEP_WDT) && (powr.state == 1)) {
 		// 	power mode 3, check RX mode against timer. typically RX is off beside a special command to switch RX on for at least 30 seconds
 		cc.setPowerDownState();													// go to sleep
 		powr.state = 0;
 
-	} else if ((powr.mode > 1) && (powr.state == 0)) {							// TRX module is off, so lets sleep for a while
+	} else if ((powr.mode > POWER_MODE_ON) && (powr.state == 0)) {				// TRX module is off, so lets sleep for a while
 		// sleep for mode 2, 3 and 4
 
 		statusLed.stop(STATUSLED_BOTH);											// stop blinking, because we are going to sleep
-		if ((powr.mode == 2) || (powr.mode == 3)) {
+		if ((powr.mode == POWER_MODE_BURST) || (powr.mode == POWER_MODE_SLEEP_WDT)) {
 			WDTCSR |= (1 << WDIE);												// enable watch dog if power mode 2 or 3
 		}
 
@@ -824,7 +836,7 @@ void     HM::power_poll(void) {
 		/* wake up here */
 		
 		sleep_disable();														// disable sleep
-		if ((powr.mode == 2) || (powr.mode == 3)) {
+		if ((powr.mode == POWER_MODE_BURST) || (powr.mode == POWER_MODE_SLEEP_WDT)) {
 			WDTCSR &= ~(1 << WDIE);												// disable watch dog
 		}
 
