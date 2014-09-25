@@ -21,12 +21,13 @@ uint8_t bCast[] = {0,0,0,0};													// broad cast address
 
 //  public://--------------------------------------------------------------------------------------------------------------
 //- homematic public protocol functions
-void     HM::init(void) {
+void     HM::init(uint8_t reset_mode) {
 	#ifdef AS_DBG || AS_DBG_Explain
 		Serial.begin(57600);													// serial setup
 		//Serial << F("AskSin debug enabled...\n");								// ...and some information
 	#endif
 
+	resetMode = reset_mode;
 	// register handling setup
 	prepEEprom();																// check the eeprom for first time boot, prepares the eeprom and loads the defaults
 	loadRegs();
@@ -99,7 +100,12 @@ void     HM::reset(void) {
 	prepEEprom();																// check the eeprom for first time boot, prepares the eeprom and loads the defaults
 	loadRegs();
 
-	statusLed.set(STATUSLED_2, STATUSLED_MODE_BLINKSFAST, 5);					// blink LED2 5 times short
+	if (resetMode == RESET_MODE_HARD) {
+		wdt_enable(WDTO_1S);
+		while(1);																// wait for Watchdog to generate reset
+	} else {
+		statusLed.set(STATUSLED_2, STATUSLED_MODE_BLINKSFAST, 5);				// blink LED2 5 times short
+	}
 }
 
 /**
@@ -241,14 +247,10 @@ void     HM::prepEEprom(void) {
 		#endif
 		
 		clrEeBl(ee[0].peerDB, ee[1].peerDB);									// format the eeprom area (peerDB)
-		_delay_ms(50);															// give eeprom some time
-
 		clrEeBl(ee[0].regsDB, ee[1].regsDB);									// format the eeprom area (regsDB)
-		_delay_ms(50);															// give eeprom some time
-
 		loadDefaults();															// do we have some default settings
-		_delay_ms(50);															// give eeprom some time
 	}
+
 	setEeWo(ee[0].magicNr,crc);													// write magic number to it's position
 }
 
@@ -279,6 +281,8 @@ void     HM::loadDefaults(void) {
 				Serial << F("cnl:") << t->cnl << F(", lst:") << t->lst << F(", idx:") << t->pIdx << ", addr:" << eeAddr << ", data: " << pHexPGM(t->b, t->len) << '\n';
 			#endif
 		}
+
+		_delay_ms(50);															// give eeprom some time
 	}
 }
 
@@ -1223,19 +1227,19 @@ void     HM::recv_PeerEvent(void) {
 
 uint8_t  HM::main_Jump(void) {
 	uint8_t ret = 0;
-	for (uint8_t i = 0; ; i++) {														// find the call back function
-		s_jumptable *p = &jTbl[i];														// some shorthand
+	for (uint8_t i = 0; ; i++) {												// find the call back function
+		s_jumptable *p = &jTbl[i];												// some shorthand
 		if (p->by3 == 0) {
-			break;																		// break if on end of list
+			break;																// break if on end of list
 		}
 		
-		if ((p->by3 != recv_msgTp) && (p->by3  != 0xff)) continue;						// message type didn't fit, therefore next
-		if ((p->by10 != recv_by10) && (p->by10 != 0xff)) continue;						// byte 10 didn't fit, therefore next
-		if ((p->by11 != recv_by11) && (p->by11 != 0xff)) continue;						// byte 11 didn't fit, therefore next
+		if ((p->by3 != recv_msgTp) && (p->by3  != 0xff)) continue;				// message type didn't fit, therefore next
+		if ((p->by10 != recv_by10) && (p->by10 != 0xff)) continue;				// byte 10 didn't fit, therefore next
+		if ((p->by11 != recv_by11) && (p->by11 != 0xff)) continue;				// byte 11 didn't fit, therefore next
 		
 		// if we are here, all conditions are checked and ok
-		p->fun(recv_payLoad, recv_len - 9);												// and jump into
-		ret = 1;																		// remember that we found a valid function to jump into
+		p->fun(recv_payLoad, recv_len - 9);										// and jump into
+		ret = 1;																// remember that we found a valid function to jump into
 	}
 
 	return ret;
@@ -1653,9 +1657,11 @@ void     HM::setEeBl(uint16_t addr,uint8_t len,void *ptr) {
 	eeprom_write_block((const void*)ptr,(void*)addr,len);
 }
 void     HM::clrEeBl(uint16_t addr, uint16_t len) {
-	for (uint16_t l = 0; l < len; l++) {												// step through the bytes of eeprom
-		setEeBy(addr+l, 0);																// and write a 0
+	for (uint16_t l = 0; l < len; l++) {										// step through the bytes of eeprom
+		setEeBy(addr+l, 0);														// and write a 0
 	}
+
+	_delay_ms(50);																// give eeprom some time
 }
 
 HM hm;

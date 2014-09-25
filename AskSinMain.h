@@ -16,6 +16,8 @@
 
 
 #define USE_ADRESS_SECTION  1													// see Register.h
+#define RESET_MODE_SOFT     0
+#define RESET_MODE_HARD     1
 
 //#define AS_DBG																	// activate to see asksin debug infos's
 //#define AS_DBG_Explain														// activate to see more asksin debug infos's
@@ -147,11 +149,11 @@ class HM {
 	uint8_t hmId[3];																	// own HMID
 
 	//- homematic public protocol functions
-	void     init(void);																// Ok, initialize the HomeMatic module
+	void     init(uint8_t resetMode);													// Ok, initialize the HomeMatic module
 	void     poll(void);																// OK, main task to manage TX and RX messages
 	void     send_out(void);															// OK, send function
 
-	void     reset(void);																// , clear peer database and register content, do a reset of the device
+	void     reset(void);																// clear peer database and register content, do a reset of the device
 	void     setPowerMode(uint8_t mode);												// set power mode for HM device
 	void     stayAwake(uint32_t xMillis);												// switch TRX module in RX mode for x milliseconds
 
@@ -235,6 +237,7 @@ class HM {
 	//- internal send functions
 	void     send_prep(uint8_t msgCnt, uint8_t comBits, uint8_t msgType, uint8_t *targetID, uint8_t *payLoad, uint8_t payLen);
 
+	uint8_t  resetMode;																	// if set, a hm.reset resets the device to (wdt reset was triggert)
 	//- to check incoming messages if sender is known
 	uint8_t  isPeerKnown(uint8_t *peer);												// , check 3 byte peer against peer database, return 1 if found, otherwise 0
 	uint8_t  isPairKnown(uint8_t *pair);												// check 3 byte pair against List0, return 1 if pair is known, otherwise 0
