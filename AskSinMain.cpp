@@ -118,8 +118,8 @@ void     HM::reset(void) {
  * 0 - RX mode enabled by default, take approx 17ma
  *
  * 1 - RX is in burst mode, RX will be switched on every 250ms to check if there is a carrier signal
- *     if yes - RX will stay enabled until timeout is reached, prolongation of timeout via receive function seems not necessary
- * 			to be able to receive an ACK, RX mode should be switched on by send function
+ *     if yes - RX will stay enabled until timeout is reached, prolongation of timeout via receive function
+ *     seems not necessary to be able to receive an ACK, RX mode should be switched on by send function
  *     if no  - RX will go in idle mode and wait for the next carrier sense check
  *
  * 2 - RX is off by default, TX mode is enabled while sending something
@@ -776,7 +776,7 @@ void     HM::power_poll(void) {
 	// 4 - Same as power mode 3 but without watchdog
 	
 
-	if (powr.mode == 0)    return;												// in mode 0 there is nothing to do
+	if (powr.mode == POWER_MODE_ON)    return;									// in mode 1 there is nothing to do
 
 	unsigned long mils = millis();
 	if (powr.nxtTO > mils) return;												// no need to do anything
@@ -1640,7 +1640,6 @@ void     HM::setEeWo(uint16_t addr, uint16_t payload) {
 	// todo: extend range for i2c eeprom
 	eeprom_write_word((uint16_t*)addr,payload);
 	//setEeBl(addr,2,&payload);
-
 }
 uint32_t HM::getEeLo(uint16_t addr) {
 	// todo: lock against writing
