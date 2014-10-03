@@ -233,8 +233,9 @@ void SHT10_BMP085_TSL2561::poll_measureTHP(void) {
 	if (bm180 != NULL) {														// only if we have a valid module
 		bm180->begin(BMP085_ULTRAHIGHRES);	// BMP085_ULTRALOWPOWER, BMP085_STANDARD, BMP085_HIGHRES, BMP085_ULTRAHIGHRES
 
-		tPres = (uint16_t)(bm180->readPressure() / 10);
-//		Serial.print("tPres: "); Serial.println(tPres);
+		// simple barometric formula
+		tPres = (uint16_t)((bm180->readPressure() / 10) + (tAltitude / 0.85));
+		//Serial << F("tPres: ") << tPres << '\n';
 
 		if (tPres > 300) {
 			// get temperature from bmp180 if sht10 no present
@@ -296,3 +297,6 @@ void SHT10_BMP085_TSL2561::tsl2561_ISR(uint8_t pinState) {
 	}
 }
 
+void SHT10_BMP085_TSL2561::setAltitude(int16_t altitude) {
+	tAltitude = altitude;
+}

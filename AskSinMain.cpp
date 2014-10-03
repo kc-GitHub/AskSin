@@ -41,7 +41,7 @@ void     HM::init(uint8_t resetMode) {
 	#if USE_ADRESS_SECTION == 1
 		memcpy(hmId, &dParm.p[17], 3);											// initialize hmId
 	#else
-		memcpy_P(hmId, &dParm.p[17], 3);											// initialize hmId
+		memcpy_P(hmId, &dParm.p[17], 3);										// initialize hmId
 	#endif
 
 	statusLed.setHandle(this);													// make the main class visible for status led
