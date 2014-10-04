@@ -21,13 +21,11 @@ uint8_t bCast[] = {0,0,0,0};													// broad cast address
 
 //  public://--------------------------------------------------------------------------------------------------------------
 //- homematic public protocol functions
-void     HM::init(uint8_t resetMode) {
+void     HM::init(void) {
 	#ifdef AS_DBG || AS_DBG_Explain
 		Serial.begin(57600);													// serial setup
 		//Serial << F("AskSin debug enabled...\n");								// ...and some information
 	#endif
-
-	HM::resetMode = resetMode;
 
 	// register handling setup
 	prepEEprom();																// check the eeprom for first time boot, prepares the eeprom and loads the defaults
@@ -60,6 +58,12 @@ void     HM::poll(void) {														// task scheduler
 	module_poll();																// poll the registered channel modules
 	statusLed.poll();															// poll the status leds
 	battery.poll();																// poll the battery check
+
+	if(resetWdt_flag > 0 && ( (unsigned long)(millis() - wdtResetTimer) > TIMEOUT_WDT_RESET) ) {
+		resetWdt_flag = 0;
+		wdt_enable(WDTO_250MS);
+		while(1);															// wait for Watchdog to generate reset
+	}
 }
 
 void     HM::cc1101Recv_poll(void) {
@@ -101,12 +105,15 @@ void     HM::reset(void) {
 	prepEEprom();																// check the eeprom for first time boot, prepares the eeprom and loads the defaults
 	loadRegs();
 
-	if (resetMode == RESET_MODE_HARD) {
-		wdt_enable(WDTO_1S);
-		while(1);																// wait for Watchdog to generate reset
-	} else {
-		statusLed.set(STATUSLED_2, STATUSLED_MODE_BLINKSFAST, 5);				// blink LED2 5 times short
-	}
+	statusLed.set(STATUSLED_2, STATUSLED_MODE_BLINKSFAST, 3);					// blink LED2 5 times short
+}
+
+/**
+ * Perform a device watchdog reset so we can jump to bootloader
+ */
+void     HM::resetWdt(void) {
+	wdtResetTimer = millis();
+	resetWdt_flag = 1;
 }
 
 /**
@@ -609,9 +616,9 @@ void     HM::recv_poll(void) {															// handles the receive objects
 }
 
 void     HM::send_poll(void) {															// handles the send queue
-	unsigned long mils = millis();
+	unsigned long xMillis = millis();
 
-	if((send.counter <= send.retries) && (send.timer <= mils)) {						// not all sends done and timing is OK
+	if((send.counter <= send.retries) && (send.timer <= xMillis)) {						// not all sends done and timing is OK
 		
 		// here we encode and send the string
 		hm_enc(send.data);																// encode the string
@@ -622,9 +629,9 @@ void     HM::send_poll(void) {															// handles the send queue
 		
 		// setting some variables
 		send.counter++;																	// increase send counter
-		send.timer = mils + dParm.timeOut;											// set the timer for next action
+		send.timer = xMillis + dParm.timeOut;											// set the timer for next action
 		powr.state = 1;																	// remember TRX module status, after sending it is always in RX mode
-		if ((powr.mode > 0) && (powr.nxtTO < (mils + powr.minTO))) stayAwake(powr.minTO); // stay awake for some time
+		if ((powr.mode > 0) && (powr.nxtTO < (xMillis + powr.minTO))) stayAwake(powr.minTO); // stay awake for some time
 
 		#if defined(AS_DBG)																// some debug messages
 			Serial << F("<- ") << pHexL(send.data, send.data[0]+1) << pTime();
@@ -641,7 +648,7 @@ void     HM::send_poll(void) {															// handles the send queue
 		send.counter = 0; send.timer = 0;												// clear send flag
 	}
 	
-	if((send.counter > send.retries) && (send.timer <= mils)) {							// max retries achieved, but seems to have no answer
+	if((send.counter > send.retries) && (send.timer <= xMillis)) {						// max retries achieved, but seems to have no answer
 		send.counter = 0; send.timer = 0;												// cleanup of send buffer
 		// todo: error handling, here we could jump some were to blink a led or whatever
 		
@@ -778,8 +785,8 @@ void     HM::power_poll(void) {
 
 	if (powr.mode == POWER_MODE_ON)    return;									// in mode 1 there is nothing to do
 
-	unsigned long mils = millis();
-	if (powr.nxtTO > mils) return;												// no need to do anything
+	unsigned long xMillis = millis();
+	if (powr.nxtTO > xMillis) return;											// no need to do anything
 
 	if (send.counter > 0)  return;												// send queue not empty
 	
