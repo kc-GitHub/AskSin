@@ -28,7 +28,7 @@
 #define POWER_MODE_SLEEP_WDT  3													// Device sleeps. The watchdog wake up the device every 250 ms
 #define POWER_MODE_SLEEP_DEEP 4													// Device sleeps. Only level interrupt wake up the device (e.g. external key press)
 
-#define TIMEOUT_WDT_RESET     250
+#define TIMEOUT_WDT_RESET     300
 
 #ifdef AS_DBG || AS_DBG_Explain
 	#include "utility/Serial.h"
