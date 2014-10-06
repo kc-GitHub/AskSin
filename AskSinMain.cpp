@@ -631,7 +631,10 @@ void     HM::send_poll(void) {															// handles the send queue
 		send.counter++;																	// increase send counter
 		send.timer = xMillis + dParm.timeOut;											// set the timer for next action
 		powr.state = 1;																	// remember TRX module status, after sending it is always in RX mode
-		if ((powr.mode > 0) && (powr.nxtTO < (xMillis + powr.minTO))) stayAwake(powr.minTO); // stay awake for some time
+
+		if ((powr.mode > 0) && (powr.nxtTO < (xMillis + powr.minTO))) {
+			stayAwake(powr.minTO);														// stay awake for some time
+		}
 
 		#if defined(AS_DBG)																// some debug messages
 			Serial << F("<- ") << pHexL(send.data, send.data[0]+1) << pTime();
