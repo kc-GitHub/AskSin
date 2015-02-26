@@ -15,7 +15,7 @@
 	#include "WProgram.h"
 #endif
 
-#include <Serial.h>
+#include "Serial.h"
 
 const uint16_t heartBeat[] = { 50, 200, 50, 1000};
 

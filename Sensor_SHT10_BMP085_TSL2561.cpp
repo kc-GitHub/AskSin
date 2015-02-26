@@ -6,10 +6,7 @@
  *         Dirk Hoffmann dirk@fhem.forum
  */
 #include "Sensor_SHT10_BMP085_TSL2561.h"
-extern "C" {
-	#include <Wire.h>
-	#include <twi.h>
-}
+#include <Wire.h>
 
 //- user code here --------------------------------------------------------------------------------------------------------
 void SHT10_BMP085_TSL2561::config(uint8_t data, uint8_t sck, uint16_t timing, Sensirion *tPtr, BMP085 *pPtr, TSL2561 *lPtr) {

@@ -17,7 +17,7 @@
 
 #include <util/delay.h>
 #include <Wire.h>
-#include <Serial.h>
+#include "Serial.h"
 
 class Battery {
   public://----------------------------------------------------------------------------------------------------------------

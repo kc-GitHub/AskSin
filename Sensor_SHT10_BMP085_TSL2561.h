@@ -21,9 +21,9 @@
 #include "utility/PinChangeIntHandler.h"
 
 #include <Wire.h>
-#include <../Sensirion/Sensirion.h>
-#include <../BMP085/BMP085.h>
-#include <../TSL2561/TSL2561.h>
+#include <Sensirion.h>
+#include <BMP085.h>
+#include <TSL2561.h>
 
 #define SHT10_BMP085_TSL2561 Sensors_SHT10_BMP085_TSL2561						// module name as macro to overcome the problem of renaming functions all the time
 //#define DM_DBG																// debug message flag
