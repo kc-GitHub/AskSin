@@ -53,15 +53,15 @@ void    CC110x::init(void) {													// initialize CC1101
 
 	// define init settings for TRX868
 	static const uint8_t initVal[] PROGMEM = {
-		CC1101_IOCFG2,    0x2E,													// non inverted GDO2, high impedance tri state
+		CC1101_IOCFG2,     0x2E,												// non inverted GDO2, high impedance tri state
 		//CC1101_IOCFG1,    0x2E,	(default)									// low output drive strength, non inverted GD=1, high impedance tri state
-		CC1101_IOCFG0,    0x06,	// packet CRC ok								// disable temperature sensor, non inverted GDO0,
-		CC1101_FIFOTHR,   0x0D,													// 0 ADC retention, 0 close in RX, TX FIFO = 9 / RX FIFO = 56 byte
-		CC1101_SYNC1,     0xE9,
-		CC1101_SYNC0,     0xCA,
-		CC1101_PKTLEN,    0x3D,													// packet length 61
-		CC1101_PKTCTRL1,  0x0C,													// PQT = 0, CRC auto flush = 1, append status = 1, no address check
-		CC1101_FSCTRL1,   0x06,
+		CC1101_IOCFG0,     0x06,	// packet CRC ok							// disable temperature sensor, non inverted GDO0,
+		CC1101_FIFOTHR,    0x0D,												// 0 ADC retention, 0 close in RX, TX FIFO = 9 / RX FIFO = 56 byte
+		CC1101_SYNC1,      0xE9,
+		CC1101_SYNC0,      0xCA,
+		CC1101_PKTLEN,     0x3D,												// packet length 61
+		CC1101_PKTCTRL1,   0x0C,												// PQT = 0, CRC auto flush = 1, append status = 1, no address check
+		CC1101_FSCTRL1,    0x06,
 
 		// 868.299866 MHz
 		//CC1101_FREQ2,     0x21,
@@ -69,31 +69,31 @@ void    CC110x::init(void) {													// initialize CC1101
 		//CC1101_FREQ0,     0x6A,
 
 		// 868.2895508
-		CC1101_FREQ2,     0x21,
-		CC1101_FREQ1,     0x65,
-		CC1101_FREQ0,     0x50,
+		CC1101_FREQ2,      0x21,
+		CC1101_FREQ1,      0x65,
+		CC1101_FREQ0,      0x50,
 
-		CC1101_MDMCFG4,  0xC8,
-		CC1101_MDMCFG3,  0x93,
-		CC1101_MDMCFG2,  0x03,
-		CC1101_DEVIATN,  0x34,													// 19.042969 kHz
-		CC1101_MCSM2,    0x01,
-		//CC1101_MCSM1,    0x30,	(default)									// always go into IDLE
-		CC1101_MCSM0,    0x18,
-		CC1101_FOCCFG,   0x16,
-		CC1101_AGCCTRL2, 0x43,
-		//CC1101_WOREVT1, 0x28,													// tEVENT0 = 50 ms, RX timeout = 390 us
-		//7CC1101_WOREVT0, 0xA0,
-		//CC1101_WORCTRL, 0xFB,													//EVENT1 = 3, WOR_RES = 0
-		CC1101_FREND1,  0x56, //
-		CC1101_FSCAL1,  0x00,
-		CC1101_FSCAL0,  0x11,
-		CC1101_TEST1,   0x35,
-		CC1101_PATABLE, 0xC3,
+		CC1101_MDMCFG4,    0xC8,
+		CC1101_MDMCFG3,    0x93,
+		CC1101_MDMCFG2,    0x03,
+		CC1101_DEVIATN,    0x34,												// 19.042969 kHz
+		CC1101_MCSM2,      0x01,
+		//CC1101_MCSM1,     0x30,	(default)									// always go into IDLE
+		CC1101_MCSM0,      0x18,
+		CC1101_FOCCFG,     0x16,
+		CC1101_AGCCTRL2,   0x43,
+		//CC1101_WOREVT1,   0x28,												// tEVENT0 = 50 ms, RX timeout = 390 us
+		//7CC1101_WOREVT0,  0xA0,
+		//CC1101_WORCTRL,   0xFB,												//EVENT1 = 3, WOR_RES = 0
+		CC1101_FREND1,     0x56, //
+		CC1101_FSCAL1,     0x00,
+		CC1101_FSCAL0,     0x11,
+		CC1101_TEST1,      0x35,
+		CC1101_PATABLE,    0xC3,
 	};
 
-	for (uint8_t i=0; i<sizeof(initVal); i++) {											// write init value to TRX868
-		writeReg(pgm_read_byte(&initVal[i++]), pgm_read_byte(&initVal[i]));
+	for (uint8_t i=0; i<sizeof(initVal); i+=2) {								// write init value to TRX868
+		writeReg(pgm_read_byte(&initVal[i]), pgm_read_byte(&initVal[i+1]));
 	}
 
 	#if defined(CC_DBG)
