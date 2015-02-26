@@ -34,7 +34,7 @@
 // 24-Dec-04 1.4  * Added DelegateMemento, to allow collections of disparate delegates.
 //                * <,>,<=,>= comparison operators to allow storage in ordered containers.
 //				  * Substantial reduction of code size, especially the 'Closure' class.
-//				  * Standardised all the compiler-specific workarounds.
+//				  * Standardized all the compiler-specific workarounds.
 //                * MFP conversion now works for CodePlay (but not yet supported in the full code).
 //                * Now compiles without warnings on _any_ supported compiler, including BCC 5.5.1
 //				  * New syntax: FastDelegate< int (char *, double) >.
@@ -47,14 +47,6 @@
 
 #ifndef FASTDELEGATE_H
 #define FASTDELEGATE_H
-
-#if defined(ARDUINO) && ARDUINO >= 100
-	#include "Arduino.h"
-#else
-	#include "WProgram.h"
-#endif
-
-#include <memory.h> // to allow <,> comparisons
 
 ////////////////////////////////////////////////////////////////////////////////
 //						Configuration options
