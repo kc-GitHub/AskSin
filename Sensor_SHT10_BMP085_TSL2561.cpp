@@ -33,7 +33,6 @@ void SHT10_BMP085_TSL2561::config(uint8_t data, uint8_t sck, uint16_t timing, Se
 
 		// Check if tsl2561 available
 		if (tsl2561->setPowerUp()) {
-//			tsl2561->setPowerDown();
 
 			// config tsl2561 interrupt pin
 			pinMode(A0, INPUT_PULLUP);													// setting the pin to input mode
@@ -57,8 +56,8 @@ void SHT10_BMP085_TSL2561::poll_transmit(void) {
 }
 
 uint32_t SHT10_BMP085_TSL2561::calcSendSlot(void) {
-	uint32_t result = (((hm->getHMID() << 8) | (hm->getMsgCnt()+1)) * 1103515245 + 12345) >> 16;
-	return (result & 0xFF) + 480;
+	uint32_t result = (((hm->getHMID() << 8) | hm->getMsgCnt()) * 1103515245 + 12345) >> 16;
+	return (result & 0xFF) + SHT10_BMP085_TSL2561_MINIMAL_CYCLE_LENGTH;
 }
 
 //- mandatory functions for every new module to communicate within HM protocol stack --------------------------------------
@@ -104,13 +103,26 @@ void SHT10_BMP085_TSL2561::peerMsgEvent(uint8_t type, uint8_t *data, uint8_t len
 
 void SHT10_BMP085_TSL2561::poll(void) {
 	if (tsl2561IntFlag) {
-//		Serial.print("tsl2561IntFlag: "); Serial.println(tsl2561IntFlag);
-//		_delay_ms(50);
 		tsl2561IntFlag = 0;
 		if (nAction == SHT10_BMP085_TSL2561_nACTION_MEASURE_L) {
 			nAction = SHT10_BMP085_TSL2561_nACTION_CALC_L;
 		}
 
+/*
+		tsl2561->getData(tsl2561Data0, tsl2561Data1);
+
+		uint16_t low = tsl2561Data0;
+		uint16_t heigh = tsl2561Data0;
+		low = (low > 300) ? (low -300) : low;
+		heigh = (heigh < 65000) ? (heigh + 300) : heigh;
+
+		Serial.print(low); Serial.print(" < "); Serial.print(tsl2561Data0); Serial.print(" < "); Serial.println(heigh);
+		_delay_ms(50);
+
+		// Setup interrupt pesistence fo rinterrupt driven light detection
+		tsl2561->setInterruptThreshold(low, heigh);
+		tsl2561->setInterruptControl(TSL2561_INTERRUPT_CONTROL_LEVEL, TSL2561_INTERRUPT_PSELECT_OUT_OF_RANGE_1);
+*/
 		// reset the interrupt line
 		tsl2561->clearInterrupt();
 	}
@@ -178,8 +190,6 @@ uint8_t SHT10_BMP085_TSL2561::poll_measureLightInit() {
 		}
 
 		tsl2561->setTiming(gain, integrationTime);
-
-		//tsl2561->setInterruptThreshold(0,10);
 	}
 
 	return initOk;

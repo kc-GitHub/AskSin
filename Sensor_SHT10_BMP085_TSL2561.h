@@ -35,6 +35,7 @@
 #define SHT10_BMP085_TSL2561_nACTION_TRANSMIT      5
 
 #define SHT10_BMP085_TSL2561_MAX_MEASURE_TIME      50
+#define SHT10_BMP085_TSL2561_MINIMAL_CYCLE_LENGTH  480							// minimal cycle length in 250ms units
 
 const uint8_t peerOdd[] =    {};												// default settings for list3 or list4
 const uint8_t peerEven[] =   {};
