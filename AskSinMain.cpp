@@ -486,8 +486,9 @@ void     HM::sendPeerWEATHER(uint8_t cnl, int16_t temp, uint8_t hum, uint16_t pr
 	pevt.data[7] = (lux >> 8) & 0xFF;
 	pevt.data[8] = lux & 0xFF;
 
-	pevt.data[9] = (battery.voltage >> 8) & 0xFF;								// battery voltage
-	pevt.data[10] = battery.voltage & 0xFF;
+	// todo: change to 1byte
+	pevt.data[9] = ((battery.voltage*100) >> 8) & 0xFF;								// battery voltage
+	pevt.data[10] = (battery.voltage*100) & 0xFF;
 
 	pevt.len = 11;
 

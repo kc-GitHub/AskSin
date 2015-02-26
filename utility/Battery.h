@@ -25,7 +25,7 @@ class Battery {
 	uint8_t state;																		// status byte for message handling
 	uint16_t voltage;																	// last measured battery voltage
 
-	void config(uint8_t mode, uint8_t enablePin, uint8_t adcPin, float fact, uint16_t time);
+	void config(uint8_t mode, uint8_t enablePin, uint8_t adcPin, uint8_t fact, uint16_t time);
 	void setMinVoltage(uint8_t tenthVolts);												// set the reference voltage in 0.1 volts
 
 	void poll(void);																	// poll for periodic check
@@ -47,8 +47,8 @@ class Battery {
 	#define BATTERY_MODE_EXTERNAL_MESSUREMENT 2
 
 
-	uint16_t getBatteryVoltageInternal();
-	uint16_t getBatteryVoltageExternal();
+	uint8_t getBatteryVoltageInternal();
+	uint8_t getBatteryVoltageExternal();
 
 	uint16_t getAdcValue(uint8_t voltageReference, uint8_t inputChannel);
 };
