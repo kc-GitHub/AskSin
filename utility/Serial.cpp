@@ -213,6 +213,6 @@ char pHexL(uint8_t *buf, uint8_t len) {
 	return 0;
 }
 char pTime(void) {
-	Serial << F("(") << millis() << F(")\n");
+	Serial << F(" (") << millis() << F(")\n");
 	return 0;
 }

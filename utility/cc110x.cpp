@@ -52,7 +52,7 @@ void    CC110x::init(void) {													// initialize CC1101
 	#endif
 
 	// define init settings for TRX868
-	static prog_uint8_t initVal[] PROGMEM = {
+	static const uint8_t initVal[] PROGMEM = {
 		CC1101_IOCFG2,    0x2E,													// non inverted GDO2, high impedance tri state
 		//CC1101_IOCFG1,    0x2E,	(default)									// low output drive strength, non inverted GD=1, high impedance tri state
 		CC1101_IOCFG0,    0x06,	// packet CRC ok								// disable temperature sensor, non inverted GDO0,
@@ -138,12 +138,10 @@ uint8_t CC110x::sendData(uint8_t *buf, uint8_t burst) {									// send data pac
 
 	if (burst) {																		// BURST-bit set?
 		cmdStrobe(CC1101_STX  );														// send a burst
-		_delay_ms(360);																	// according to ELV, devices get activated every 300ms, so send burst for 360ms
+		_delay_ms(359);																	// according to ELV, devices get activated every 300ms, so send burst for 360ms
 		//Serial << "send burst\n";
-
-	} else {
-		_delay_ms(1);																	// wait a short time to set TX mode
 	}
+	_delay_ms(1);																		// wait a short time to set TX mode
 
 	writeBurst(CC1101_TXFIFO, buf, buf[0]+1);											// write in TX FIFO
 

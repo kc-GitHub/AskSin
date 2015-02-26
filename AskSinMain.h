@@ -14,10 +14,11 @@
 	#include "WProgram.h"
 #endif
 
+#define AS_DBG																	// activate to see asksin debug infos's
+//#define AS_DBG_Explain														// activate to see more asksin debug infos's
 
-#define USE_ADRESS_SECTION    1												// see Register.h
+#define USE_ADRESS_SECTION    1													// see Register.h
 #define RESET_MODE_SOFT       0
-#define RESET_MODE_HARD       1
 
 #define LED_MODE_CONFIG       0													// led flashes only at config button actions
 #define LED_MODE_EVERYTIME    1													// led flashes at every actions
@@ -27,8 +28,7 @@
 #define POWER_MODE_SLEEP_WDT  3													// Device sleeps. The watchdog wake up the device every 250 ms
 #define POWER_MODE_SLEEP_DEEP 4													// Device sleeps. Only level interrupt wake up the device (e.g. external key press)
 
-#define AS_DBG																	// activate to see asksin debug infos's
-//#define AS_DBG_Explain														// activate to see more asksin debug infos's
+#define TIMEOUT_WDT_RESET     300
 
 #ifdef AS_DBG || AS_DBG_Explain
 	#include "utility/Serial.h"
@@ -66,6 +66,8 @@ struct s_defaultRegsTbl {		// struct for storing some defaults
 	const uint8_t *b;																	// payload byte array
 };
 //- -----------------------------------------------------------------------------------------------------------------------
+
+static volatile uint8_t resetWdt_flag;
 
 //- interrupt handling
 static volatile uint8_t int0_flag;
@@ -156,12 +158,15 @@ class HM {
 
 	uint8_t hmId[3];																	// own HMID
 
+	uint8_t wdtResetTimer;																// timer to count timeout before watchdog reset
+
 	//- homematic public protocol functions
-	void     init(uint8_t resetMode);													// Ok, initialize the HomeMatic module
+	void     init(void);																// Ok, initialize the HomeMatic module
 	void     poll(void);																// OK, main task to manage TX and RX messages
 	void     send_out(void);															// OK, send function
 
 	void     reset(void);																// clear peer database and register content, do a reset of the device
+	void     resetWdt(void);															// initiate a watchdog reset
 	void     setPowerMode(uint8_t mode);												// set power mode for HM device
 	void     stayAwake(uint32_t xMillis);												// switch TRX module in RX mode for x milliseconds
 	void     setLedMode(uint8_t ledMode);
@@ -239,6 +244,7 @@ class HM {
 	//- receive message handling
 	void     recv_PairConfig(void);														// , 01
 	void     recv_PairEvent(void);														// , 11
+//	void     recv_UpdateEvent(void);													// , 30
 	void     recv_PeerEvent(void);														// , >=12
 	uint8_t  main_Jump(void);
 	uint8_t  module_Jump(uint8_t *by3, uint8_t *by10, uint8_t *by11, uint8_t *cnl, uint8_t *data, uint8_t len);
@@ -246,7 +252,6 @@ class HM {
 	//- internal send functions
 	void     send_prep(uint8_t msgCnt, uint8_t comBits, uint8_t msgType, uint8_t *targetID, uint8_t *payLoad, uint8_t payLen);
 
-	uint8_t  resetMode;																	// if set, a hm.reset resets the device to (wdt reset was triggert)
 	uint8_t  ledMode;
 
 	//- to check incoming messages if sender is known
