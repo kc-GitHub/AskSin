@@ -18,17 +18,12 @@
  * time:      interval to check the battery voltage
  */
 void Battery::config(uint8_t mode, uint8_t enablePin, uint8_t adcPin, uint8_t fact, uint16_t time) {
-	unsigned long mils = millis();
-
 	tMode = mode;
 	tEnablePin = enablePin;
 	tAdcPin = adcPin;
 	tFact = fact;
 	tTime = time;
-
-	if (tMode) {
-		nTime = mils;
-	}
+	nTime = time;
 
 	if (tEnablePin > 0) {
 		pinMode(tEnablePin, INPUT);
@@ -48,27 +43,25 @@ void Battery::setMinVoltage(uint8_t tenthVolts) {
  * Cyclic battery measurement function.
  */
 void Battery::poll(void) {
-	unsigned long mils = millis();
 	uint8_t batteryVoltage;
 
-	if ((tMode == 0) || (nTime > mils)) {
-		return;										// nothing to do, step out
+	if ((tMode == 0) || (millis() - nTime < tTime)) {
+		return;																	// nothing to do, step out
 
 	} else  if (tMode == BATTERY_MODE_BANDGAP_MESSUREMENT) {
-//		voltage = getBatteryVoltageInternal();
+		voltage = getBatteryVoltageInternal();
 
 	} else  if (tMode == BATTERY_MODE_EXTERNAL_MESSUREMENT) {
-//		voltage = getBatteryVoltageExternal();
+		voltage = getBatteryVoltageExternal();
 	}
 
-//	voltage = getBatteryVoltageInternal();
-	voltage = getBatteryVoltageExternal();
 
 	state = (voltage < tTenthVolts) ? 1 : 0;							// set the battery status
-//	//hfm debug
+	nTime = millis();
+
+	//hfm debug
 //	Serial.print ("batteryVoltage: "); Serial.println (voltage);
 //	_delay_ms(10);
-	nTime = millis() + tTime;
 }
 
 /**
