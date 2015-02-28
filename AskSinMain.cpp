@@ -59,7 +59,6 @@ void     HM::poll(void) {														// task scheduler
 	statusLed.poll();															// poll the status leds
 	battery.poll();																// poll the battery check
 
-	// Todo: Test
 	if(resetWdt_flag > 0 && (millis() - wdtResetTimer >= TIMEOUT_WDT_RESET)) {
 		resetWdt_flag = 0;
 		wdt_enable(WDTO_250MS);
@@ -139,11 +138,6 @@ void     HM::resetWdt(void) {
  */
 void     HM::setPowerMode(uint8_t mode) {
 
-	if (mode > POWER_MODE_ON) {
-//		powr.parTO = 15000;														// pairing timeout
-		powr.minTO = 300;														// stay awake for given ms after sending
-	}
-
 	if ((mode == POWER_MODE_BURST) || (mode == POWER_MODE_SLEEP_WDT)) {
 		//MCUSR &= ~(1 << WDRF);												// clear the reset flag
 		WDTCSR |= (1 << WDCE) | (1 << WDE);										// set control register to change and enable the watch dog
@@ -161,11 +155,12 @@ void     HM::setPowerMode(uint8_t mode) {
 		set_sleep_mode(SLEEP_MODE_IDLE);										// normal power saving
 
 	} else if (mode == POWER_MODE_BURST) {										// some power savings, RX is in burst mode
-		powr.nxtTO = millis() + 250;											// check in 250ms for a burst signal
+		powr.nxtTO = 250;														// check in 250ms for a burst signal
 
 	} else if ((mode == POWER_MODE_SLEEP_WDT) || (mode == POWER_MODE_SLEEP_DEEP)) {	// most power savings, RX is off beside a special function where RX stay in receive for 30 sec
-		powr.nxtTO = millis() + 4000;											// after power on reset we stay 4 seconds awake to finish boot time
+		powr.nxtTO = 4000;															// after power on reset we stay 4 seconds awake to finish boot time
 	}
+	powr.startMillis = millis();
 
 	if (mode > POWER_MODE_ON) {
 		set_sleep_mode(SLEEP_MODE_PWR_DOWN);									// max power saving
@@ -186,12 +181,12 @@ void     HM::stayAwake(uint32_t millisAwake) {
 
 	powr.state = 1;																// remember TRX state
 
-	millisAwake += millis();
-	if (powr.nxtTO > millisAwake) {
+	if (millis() - powr.startMillis < powr.nxtTO) {
 		return;																	// set the new timeout only if necessary
 	}
 
-	powr.nxtTO = millisAwake;														// stay awake for some time by setting next check time
+	powr.nxtTO = millisAwake;													// stay awake for some time by setting next check time
+	powr.startMillis = millis();
 }
 
 void     HM::setLedMode(uint8_t ledMode) {
@@ -357,7 +352,6 @@ uint8_t  HM::getMsgCnt(void) {
 void     HM::startPairing(void) {
 	statusLed.set(STATUSLED_2, STATUSLED_MODE_BLINKSLOW);						// led blink in config mode
 
-	//if (powr.mode > 1) stayAwake(powr.parTO);									// stay awake for the next 30 seconds
 	#if USE_ADRESS_SECTION == 1
 		memcpy(send_payLoad, dParm.p, 17);										// copy details out of register.h
 	#else
@@ -622,8 +616,8 @@ void     HM::recv_poll(void) {															// handles the receive objects
 void     HM::send_poll(void) {															// handles the send queue
 	unsigned long mills = millis();
 
-	if((send.counter <= send.retries) && (send.timer <= mills)) {						// not all sends done and timing is OK
-		
+	if(send.counter <= send.retries && send.timer <= mills) {							// not all sends done and timing is OK
+
 		// here we encode and send the string
 		hm_enc(send.data);																// encode the string
 		detachInterrupt(intGDO0.nbr);													// disable interrupt otherwise we could get some new content while we copy the buffer
@@ -636,13 +630,12 @@ void     HM::send_poll(void) {															// handles the send queue
 		send.timer = mills + dParm.timeOut;												// set the timer for next action
 		powr.state = 1;																	// remember TRX module status, after sending it is always in RX mode
 
-		if ((powr.mode > 0) && (powr.nxtTO < (mills + powr.minTO))) {
-			stayAwake(powr.minTO);														// stay awake for some time
+		if ((powr.mode > POWER_MODE_ON)) {
+			stayAwake(TIMEOUT_AFTER_SENDING);											// stay awake for some time after sending in power mode > POWER_MODE_ON
 		}
 
 		#if defined(AS_DBG)																// some debug messages
-			Serial << F("<- ") << pHexL(send.data, send.data[0]+1) << F(" powr.minTO: ") << powr.minTO;
-			pTime();
+			Serial << F("<- ") << pHexL(send.data, send.data[0]+1); pTime();
 		#endif
 
 		if (pevt.act == 1) {
@@ -652,12 +645,14 @@ void     HM::send_poll(void) {															// handles the send queue
 		}
 	}
 	
-	if((send.counter > send.retries) && (send.counter < dParm.maxRetr)) {				// all send but don't wait for an ACK
-		send.counter = 0; send.timer = 0;												// clear send flag
+	if(send.counter > send.retries && send.counter < dParm.maxRetr) {					// all send but don't wait for an ACK
+		send.counter = 0;
+		send.timer = 0;																	// clear send flag
 	}
 	
-	if((send.counter > send.retries) && (send.timer <= mills)) {						// max retries achieved, but seems to have no answer
-		send.counter = 0; send.timer = 0;												// cleanup of send buffer
+	if(send.counter > send.retries && send.timer <= mills) {							// max retries achieved, but seems to have no answer
+		send.counter = 0;
+		send.timer = 0;																	// cleanup of send buffer
 		// todo: error handling, here we could jump some were to blink a led or whatever
 		
 		if (pevt.act == 1) {
@@ -794,17 +789,19 @@ void     HM::power_poll(void) {
 	if (powr.mode == POWER_MODE_ON)    return;									// in mode 1 there is nothing to do
 
 	unsigned long mills = millis();
-	if (powr.nxtTO > mills) return;												// no need to do anything
+
+	if (mills - powr.startMillis < powr.nxtTO) return;							// no need to do anything
 	if (send.counter > 0)   return;												// send queue not empty
 	
 	if ((powr.mode == POWER_MODE_BURST) && (powr.state == 0)) {
 		// power mode 2, module is in sleep and next check is reached
 		if (cc.detectBurst()) {													// check for a burst signal, if we have one, we should stay awake
-			powr.nxtTO = millis() + powr.minTO;									// schedule next timeout with some delay
+			powr.nxtTO = TIMEOUT_AFTER_SENDING;									// schedule next timeout with some delay
 			Serial << F("BURST !!! \n");
 		} else {																// no burst was detected, go to sleep in next cycle
-			powr.nxtTO = millis();												// set timer accordingly
+			powr.nxtTO = 0;														// set timer accordingly
 		}
+		powr.startMillis = mills;
 
 		powr.state = 1;
 		return;
@@ -814,7 +811,8 @@ void     HM::power_poll(void) {
 
 		cc.setPowerDownState();													// go to sleep
 		powr.state = 0;
-		powr.nxtTO = millis() + 250;											// schedule next check in 250 ms
+		powr.nxtTO = 250;														// schedule next check in 250 ms
+		powr.startMillis = mills;
 
 	} else if ((powr.mode >= POWER_MODE_SLEEP_WDT) && (powr.state == 1)) {
 		// 	power mode 3, check RX mode against timer. typically RX is off beside a special command to switch RX on for at least 30 seconds
@@ -857,7 +855,7 @@ void     HM::power_poll(void) {
 			wd_flag = 0;														// to detect the next watch dog timeout
 			timer0_millis += powr.wdTme;										// add watchdog time to millis() function
 		} else {
-			stayAwake(powr.minTO);												// stay awake for some time, if the wakeup where not raised from watchdog
+			stayAwake(TIMEOUT_AFTER_SENDING);									// stay awake for some time, if the wakeup was not raised from watchdog
 		}
 
 //		Serial << "." << "\n";
@@ -886,7 +884,6 @@ void     HM::hm_enc(uint8_t *buf) {
 }
 
 void     HM::hm_dec(uint8_t *buf) {
-
 	uint8_t prev = buf[1];
 	buf[1] = (~buf[1]) ^ 0x89;
 
