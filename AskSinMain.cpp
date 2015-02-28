@@ -101,12 +101,11 @@ void     HM::send_out(void) {
  * At reset, all eeprom data was cleared.
  */
 void     HM::reset(void) {
+	statusLed.set(STATUSLED_2, STATUSLED_MODE_BLINKSFAST, 5);					// blink LED2 5 times short
+
 	setEeWo(ee[0].magicNr,0);													// clear magic byte in eeprom and step in initRegisters
 	prepEEprom();																// check the eeprom for first time boot, prepares the eeprom and loads the defaults
 	loadRegs();
-
-	statusLed.set(STATUSLED_2, STATUSLED_MODE_BLINKSFAST, 3);					// blink LED2 5 times short
-//	stayAwake(1000);
 }
 
 /**
@@ -355,7 +354,7 @@ uint8_t  HM::getMsgCnt(void) {
  *  1A 00 A2 00 3F A6 5C 00 00 00 10 80 02 50 53 30 30 30 30 30 30 30 31 9F 04 01 01
  */
 void     HM::startPairing(void) {
-	statusLed.set(STATUSLED_2, STATUSLED_MODE_BLINKFAST);						// led blink in config mode
+	statusLed.set(STATUSLED_2, STATUSLED_MODE_BLINKSLOW);						// led blink in config mode
 
 	//if (powr.mode > 1) stayAwake(powr.parTO);									// stay awake for the next 30 seconds
 	#if USE_ADRESS_SECTION == 1
