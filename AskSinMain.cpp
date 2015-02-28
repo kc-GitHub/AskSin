@@ -59,10 +59,11 @@ void     HM::poll(void) {														// task scheduler
 	statusLed.poll();															// poll the status leds
 	battery.poll();																// poll the battery check
 
-	if(resetWdt_flag > 0 && ( (unsigned long)(millis() - wdtResetTimer) > TIMEOUT_WDT_RESET) ) {
+	// Todo: Test
+	if(resetWdt_flag > 0 && (millis() - wdtResetTimer >= TIMEOUT_WDT_RESET)) {
 		resetWdt_flag = 0;
 		wdt_enable(WDTO_250MS);
-		while(1);															// wait for Watchdog to generate reset
+		while(1);																// wait for Watchdog to generate reset
 	}
 }
 
@@ -139,7 +140,7 @@ void     HM::resetWdt(void) {
 void     HM::setPowerMode(uint8_t mode) {
 
 	if (mode > POWER_MODE_ON) {
-		powr.parTO = 15000;														// pairing timeout
+//		powr.parTO = 15000;														// pairing timeout
 		powr.minTO = 300;														// stay awake for given ms after sending
 	}
 
@@ -178,19 +179,19 @@ void     HM::setPowerMode(uint8_t mode) {
 	//Serial << "pwr.mode:" << powr.mode << '\n';
 }
 
-void     HM::stayAwake(uint32_t xMillis) {
+void     HM::stayAwake(uint32_t millisAwake) {
 	if (powr.state == 0) {
 		cc.detectBurst();														// if TRX is in sleep, switch it on
 	}
 
 	powr.state = 1;																// remember TRX state
 
-	xMillis += millis();
-	if (powr.nxtTO > xMillis) {
+	millisAwake += millis();
+	if (powr.nxtTO > millisAwake) {
 		return;																	// set the new timeout only if necessary
 	}
 
-	powr.nxtTO = xMillis;														// stay awake for some time by setting next check time
+	powr.nxtTO = millisAwake;														// stay awake for some time by setting next check time
 }
 
 void     HM::setLedMode(uint8_t ledMode) {
@@ -619,9 +620,9 @@ void     HM::recv_poll(void) {															// handles the receive objects
 }
 
 void     HM::send_poll(void) {															// handles the send queue
-	unsigned long xMillis = millis();
+	unsigned long mills = millis();
 
-	if((send.counter <= send.retries) && (send.timer <= xMillis)) {						// not all sends done and timing is OK
+	if((send.counter <= send.retries) && (send.timer <= mills)) {						// not all sends done and timing is OK
 		
 		// here we encode and send the string
 		hm_enc(send.data);																// encode the string
@@ -632,10 +633,10 @@ void     HM::send_poll(void) {															// handles the send queue
 		
 		// setting some variables
 		send.counter++;																	// increase send counter
-		send.timer = xMillis + dParm.timeOut;											// set the timer for next action
+		send.timer = mills + dParm.timeOut;												// set the timer for next action
 		powr.state = 1;																	// remember TRX module status, after sending it is always in RX mode
 
-		if ((powr.mode > 0) && (powr.nxtTO < (xMillis + powr.minTO))) {
+		if ((powr.mode > 0) && (powr.nxtTO < (mills + powr.minTO))) {
 			stayAwake(powr.minTO);														// stay awake for some time
 		}
 
@@ -655,7 +656,7 @@ void     HM::send_poll(void) {															// handles the send queue
 		send.counter = 0; send.timer = 0;												// clear send flag
 	}
 	
-	if((send.counter > send.retries) && (send.timer <= xMillis)) {						// max retries achieved, but seems to have no answer
+	if((send.counter > send.retries) && (send.timer <= mills)) {						// max retries achieved, but seems to have no answer
 		send.counter = 0; send.timer = 0;												// cleanup of send buffer
 		// todo: error handling, here we could jump some were to blink a led or whatever
 		
@@ -792,25 +793,20 @@ void     HM::power_poll(void) {
 
 	if (powr.mode == POWER_MODE_ON)    return;									// in mode 1 there is nothing to do
 
-	unsigned long xMillis = millis();
-	if (powr.nxtTO > xMillis) return;											// no need to do anything
-
-	if (send.counter > 0)  return;												// send queue not empty
+	unsigned long mills = millis();
+	if (powr.nxtTO > mills) return;												// no need to do anything
+	if (send.counter > 0)   return;												// send queue not empty
 	
 	if ((powr.mode == POWER_MODE_BURST) && (powr.state == 0)) {
-		uint32_t nxtTO;
-
 		// power mode 2, module is in sleep and next check is reached
 		if (cc.detectBurst()) {													// check for a burst signal, if we have one, we should stay awake
-			nxtTO = millis() + powr.minTO;										// schedule next timeout with some delay
+			powr.nxtTO = millis() + powr.minTO;									// schedule next timeout with some delay
 			Serial << F("BURST !!! \n");
 		} else {																// no burst was detected, go to sleep in next cycle
-			nxtTO = millis();													// set timer accordingly
+			powr.nxtTO = millis();												// set timer accordingly
 		}
 
 		powr.state = 1;
-		powr.nxtTO = nxtTO;
-
 		return;
 
 	} else if ((powr.mode == POWER_MODE_BURST) && (powr.state == 1)) {
@@ -864,7 +860,7 @@ void     HM::power_poll(void) {
 			stayAwake(powr.minTO);												// stay awake for some time, if the wakeup where not raised from watchdog
 		}
 
-//		Serial << ".";
+//		Serial << "." << "\n";
 	}
 }
 

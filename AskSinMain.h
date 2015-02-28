@@ -158,7 +158,7 @@ class HM {
 
 	uint8_t hmId[3];																	// own HMID
 
-	uint8_t wdtResetTimer;																// timer to count timeout before watchdog reset
+	unsigned long wdtResetTimer;														// timer to count timeout before watchdog reset
 
 	//- homematic public protocol functions
 	void     init(void);																// Ok, initialize the HomeMatic module
@@ -168,7 +168,7 @@ class HM {
 	void     reset(void);																// clear peer database and register content, do a reset of the device
 	void     resetWdt(void);															// initiate a watchdog reset
 	void     setPowerMode(uint8_t mode);												// set power mode for HM device
-	void     stayAwake(uint32_t xMillis);												// switch TRX module in RX mode for x milliseconds
+	void     stayAwake(uint32_t millisAwake);											// switch TRX module in RX mode for x milliseconds
 	void     setLedMode(uint8_t ledMode);
 
 	//- some functions for checking the config, preparing eeprom and load defaults to eeprom or in regs structure
@@ -253,6 +253,8 @@ class HM {
 	void     send_prep(uint8_t msgCnt, uint8_t comBits, uint8_t msgType, uint8_t *targetID, uint8_t *payLoad, uint8_t payLen);
 
 	uint8_t  ledMode;
+
+	unsigned long startTime;
 
 	//- to check incoming messages if sender is known
 	uint8_t  isPeerKnown(uint8_t *peer);												// , check 3 byte peer against peer database, return 1 if found, otherwise 0
