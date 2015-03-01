@@ -29,6 +29,7 @@
 #define POWER_MODE_SLEEP_DEEP 4													// Device sleeps. Only level interrupt wake up the device (e.g. external key press)
 
 #define TIMEOUT_WDT_RESET     300
+#define TIMEOUT_AFTER_SENDING 300
 
 #ifdef AS_DBG || AS_DBG_Explain
 	#include "utility/Serial.h"
@@ -135,6 +136,7 @@ class HM {
 		uint8_t  counter;																// send try counter, has to be 0 if send queue is empty
 		uint8_t  retries;																// set max. retries, if message requires an ACK, retries will set to 3
 		uint32_t timer;																	// timer variable used for store next check time
+		uint32_t startMillis;
 		uint8_t  burst;																	// receiver needs burst signal
 	} send;
 	struct s_recv {																		// receive queue structure
@@ -144,12 +146,11 @@ class HM {
 		uint8_t mCnt;																	// message counter for pair communication
 	} recv;
 	struct s_powr {
-		uint8_t mode;																	// indicate the power mode, TX enabled in all modes; 0 = RX enabled,  1 = RX in burst mode, 2 = RX off
-		uint8_t state;																	// current state of TRX868 module
-		uint16_t parTO;																	// timeout for pairing in ms
-		uint16_t minTO;																	// minimum time out in ms
+		uint8_t  mode;																	// indicate the power mode, TX enabled in all modes; 0 = RX enabled,  1 = RX in burst mode, 2 = RX off
+		uint8_t  state;																	// current state of TRX868 module
 		uint16_t wdTme;																	// clock cycle of watch dog in ms
 		uint32_t nxtTO;																	// check millis() timer against, if millis() >= nextTimeout go in powerdown
+		uint32_t startMillis;
 	} powr;
 
 	CC110x cc;																			// declaration of communication class

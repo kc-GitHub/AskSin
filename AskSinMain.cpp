@@ -616,8 +616,7 @@ void     HM::recv_poll(void) {															// handles the receive objects
 void     HM::send_poll(void) {															// handles the send queue
 	unsigned long mills = millis();
 
-	if(send.counter <= send.retries && send.timer <= mills) {							// not all sends done and timing is OK
-
+	if(send.counter <= send.retries && mills - send.startMillis >= send.timer) {		// not all sends done and timing is OK
 		// here we encode and send the string
 		hm_enc(send.data);																// encode the string
 		detachInterrupt(intGDO0.nbr);													// disable interrupt otherwise we could get some new content while we copy the buffer
@@ -627,7 +626,7 @@ void     HM::send_poll(void) {															// handles the send queue
 		
 		// setting some variables
 		send.counter++;																	// increase send counter
-		send.timer = mills + dParm.timeOut;												// set the timer for next action
+		send.timer = dParm.timeOut;														// set the timer for next action
 		powr.state = 1;																	// remember TRX module status, after sending it is always in RX mode
 
 		if ((powr.mode > POWER_MODE_ON)) {
@@ -650,7 +649,7 @@ void     HM::send_poll(void) {															// handles the send queue
 		send.timer = 0;																	// clear send flag
 	}
 	
-	if(send.counter > send.retries && send.timer <= mills) {							// max retries achieved, but seems to have no answer
+	if(send.counter > send.retries && mills - send.startMillis >= send.timer) {			// max retries arrived, but seems to have no answer
 		send.counter = 0;
 		send.timer = 0;																	// cleanup of send buffer
 		// todo: error handling, here we could jump some were to blink a led or whatever
@@ -666,6 +665,8 @@ void     HM::send_poll(void) {															// handles the send queue
 			Serial << F("-> NA ") << pTime();
 		#endif
 	}
+
+	send.startMillis = mills;
 }																						// ready, should work
 
 void     HM::send_conf_poll(void) {
