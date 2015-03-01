@@ -82,6 +82,7 @@ class StatusLed {
 	/* blink counter */
 	uint8_t  bCnt[2];
 	uint32_t nTime[2];
+	uint32_t startTime[2];
 
 	void onOff(uint8_t mode, uint8_t ledNum);
 	void toggle(uint8_t ledNum);
