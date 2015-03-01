@@ -70,7 +70,7 @@
 
 		uint8_t  btnStateMachineState;											// current state of button state machine
 		uint16_t btnTimer;														// timer for counting times for key presses
-		uint16_t btnRepeatTimer;												// timer for counting times for fireing repeated long press events
+		uint32_t btnRepeatTimer;												// timer for counting times for fireing repeated long press events
 
 		uint32_t millisLongDoubleTimeout;
 		uint32_t millisShortDoubleTimeout;

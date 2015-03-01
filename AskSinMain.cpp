@@ -42,7 +42,6 @@ void     HM::init(void) {
 		memcpy_P(hmId, &dParm.p[17], 3);										// initialize hmId
 	#endif
 
-	statusLed.setHandle(this);													// make the main class visible for status led
 	hm.stayAwake(1000);
 }
 
@@ -155,12 +154,10 @@ void     HM::setPowerMode(uint8_t mode) {
 		set_sleep_mode(SLEEP_MODE_IDLE);										// normal power saving
 
 	} else if (mode == POWER_MODE_BURST) {										// some power savings, RX is in burst mode
-		powr.nxtTO = 250;														// check in 250ms for a burst signal
-		powr.startMillis = millis();
+		stayAwake(250);															// check in 250ms for a burst signal
 
 	} else if ((mode == POWER_MODE_SLEEP_WDT) || (mode == POWER_MODE_SLEEP_DEEP)) {	// most power savings, RX is off beside a special function where RX stay in receive for 30 sec
-		powr.nxtTO = 4000;															// after power on reset we stay 4 seconds awake to finish boot time
-		powr.startMillis = millis();
+		stayAwake(4000);															// after power on reset we stay 4 seconds awake to finish boot time
 	}
 
 	if (mode > POWER_MODE_ON) {
@@ -176,13 +173,10 @@ void     HM::setPowerMode(uint8_t mode) {
 }
 
 void     HM::stayAwake(uint32_t millisAwake) {
-	if (powr.state == 0) {
-		cc.detectBurst();														// if TRX is in sleep, switch it on
-	}
-
+	if (powr.state == 0) cc.detectBurst(); 										// if TRX is in sleep, switch it on
 	powr.state = 1;																// remember TRX state
 
-	if (millis() - powr.startMillis < (powr.nxtTO + millisAwake)) {
+	if (((millis() - powr.startMillis) < millisAwake) && (millisAwake < powr.nxtTO)) {
 		return;																	// set the new timeout only if necessary
 	}
 
@@ -798,14 +792,15 @@ void     HM::power_poll(void) {
 	if ((powr.mode == POWER_MODE_BURST) && (powr.state == 0)) {
 		// power mode 2, module is in sleep and next check is reached
 		if (cc.detectBurst()) {													// check for a burst signal, if we have one, we should stay awake
-			powr.nxtTO = TIMEOUT_AFTER_SENDING;									// schedule next timeout with some delay
+			stayAwake(TIMEOUT_AFTER_SENDING);
 			Serial << F("BURST !!! \n");
 		} else {																// no burst was detected, go to sleep in next cycle
-			powr.nxtTO = 1;														// set timer accordingly
-			powr.startMillis = mills;
+			//todo: ceck if needed anymore
+			stayAwake(1);
 		}
 
 		powr.state = 1;
+
 		return;
 
 	} else if ((powr.mode == POWER_MODE_BURST) && (powr.state == 1)) {
@@ -813,8 +808,7 @@ void     HM::power_poll(void) {
 
 		cc.setPowerDownState();													// go to sleep
 		powr.state = 0;
-		powr.nxtTO = 250;														// schedule next check in 250 ms
-		powr.startMillis = mills;
+		stayAwake(250);
 
 	} else if ((powr.mode >= POWER_MODE_SLEEP_WDT) && (powr.state == 1)) {
 		// 	power mode 3, check RX mode against timer. typically RX is off beside a special command to switch RX on for at least 30 seconds

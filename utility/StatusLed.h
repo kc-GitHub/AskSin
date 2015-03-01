@@ -68,7 +68,6 @@ class StatusLed {
 	void stop(uint8_t leds);
 
 	void poll(void);
-	void setHandle(void *ptr);
 	void on(uint8_t ledNum);
 	void off(uint8_t ledNum);
 

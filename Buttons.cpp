@@ -155,13 +155,13 @@ void Buttons::poll(void) {
 
 	if (btnStateCurrent == BTN_NOT_PRESSED &&
 	   btnStateMachineState == BTN_STATE_LONG_FIRST &&
-	   (mills - millisLongDoubleTimeout) >= btnLongDoubleTimeout) {					// double long keypress within timeout expected
+	   (mills - millisLongDoubleTimeout) >= btnLongDoubleTimeout) {						// double long keypress within double timeout expected
 
 		btnStateMachineState = BTN_STATE_NONE;
 		buttonAction(BTN_ACTION_LONG_DOUBLE_TIMEOUT);									// fire double timeout action
 
 		#ifdef BTN_DBG
-			Serial.println("BTN_ACTION_LONG_DOUBLE_TIMEOUT");	buttonAction(BTN_ACTION_STAY_AWAKE);
+			Serial.println("bt: LONG_DOUBLE_TIMEOUT");	buttonAction(BTN_ACTION_STAY_AWAKE);
 		#endif
 	}
 
@@ -171,11 +171,11 @@ void Buttons::poll(void) {
 
 	btnHasChanged = 0;
 	#ifdef BTN_DBG
-		Serial << btnTimer << "\n";
+		Serial << "bt: " << btnTimer << "\n";
 	#endif
 
 	if (btnStateCurrent == BTN_PRESSED) {												// detect key press
-		btnTimer = mills - btnInterruptTimer;											// start button timer
+		btnTimer = mills - btnInterruptTimer ;											// start button timer
 
 		if (btnTimer >= btnLongPressTime) {												// button timer detect long key press
 			if (btnStateMachineState == BTN_STATE_LONG_FIRST) {							// was there a long key press before
@@ -184,7 +184,7 @@ void Buttons::poll(void) {
 				buttonAction(BTN_ACTION_LONG_DOUBLE);									// fire double long action
 
 				#ifdef BTN_DBG
-					Serial.println("BTN_ACTION_LONG_DOUBLE");
+					Serial.println("bt: LONG_DOUBLE");
 				#endif
 
 			} else {																	// long repeated key press detected
@@ -192,12 +192,12 @@ void Buttons::poll(void) {
 				if (btnRepeatTimer == 0) {
 					btnRepeatTimer = mills;
 				} else {
-					if (mills - btnRepeatTimer >= BTN_LONG_REPEAT_DELAY) {
+					if ((mills - btnRepeatTimer) >= BTN_LONG_REPEAT_DELAY) {
 						buttonAction(BTN_ACTION_LONG_REPEAT);							// fire double repeat action
 						btnRepeatTimer = mills;
 
 						#ifdef BTN_DBG
-							Serial.println("BTN_ACTION_LONG_REPEAT");
+							Serial.println("bt: LONG_REPEAT");
 						#endif
 					}
 				}
@@ -206,13 +206,14 @@ void Buttons::poll(void) {
 		buttonAction(BTN_ACTION_STAY_AWAKE);											// while a key was pressed fire stay awake action
 
 	} else if (btnStateCurrent == BTN_NOT_PRESSED && btnTimer > 0) {					// detect key release
+		btnRepeatTimer = 0;
 
 		if (btnStateMachineState == BTN_STATE_LONG_FIRST) {								// was there a long key press before
 			btnStateMachineState = BTN_STATE_NONE;
 			buttonAction(BTN_ACTION_LONG_DOUBLE_TIMEOUT);								// we fire double timeout action
 
 			#ifdef BTN_DBG
-				Serial.println("BTN_ACTION_LONG_DOUBLE_TIMEOUT");
+				Serial.println("bt: LONG_DOUBLE_TIMEOUT");
 			#endif
 
 		} else {
@@ -223,7 +224,7 @@ void Buttons::poll(void) {
 					buttonAction(BTN_ACTION_LONG_END);									// fire long end action
 
 					#ifdef BTN_DBG
-						Serial.println("BTN_ACTION_LONG_END");
+						Serial.println("bt: LONG_END");
 					#endif
 				}
 
@@ -235,7 +236,7 @@ void Buttons::poll(void) {
 					buttonAction(BTN_ACTION_SHORT_DOUBLE);								// double short key press
 
 					#ifdef BTN_DBG
-						Serial.println("BTN_ACTION_SHORT_DOUBLE");
+						Serial.println("bt: SHORT_DOUBLE");
 					#endif
 
 				} else {
@@ -245,7 +246,7 @@ void Buttons::poll(void) {
 						buttonAction(BTN_ACTION_SHORT_SINGLE);							// fire single short action
 
 						#ifdef BTN_DBG
-							Serial.println("BTN_ACTION_SHORT_SINGLE");
+							Serial.println("bt: SHORT_SINGLE");
 						#endif
 					}
 				}

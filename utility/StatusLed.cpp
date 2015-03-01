@@ -8,8 +8,6 @@
 
 #include "StatusLed.h"
 
-#include <AskSinMain.h>																	// declaration for getting access to stay awake function
-HM *hmPtr;
 
 void StatusLed::config(uint8_t pin1, uint8_t pin2) {
 	pin[0] = pin1;
@@ -21,9 +19,6 @@ void StatusLed::config(uint8_t pin1, uint8_t pin2) {
 	off(1);
 }
 
-void StatusLed::setHandle(void *ptr) {
-	hmPtr = (HM*)ptr;
-}
 
 void StatusLed::poll() {
 	for (uint8_t i = 0; i < 2; i++) {
@@ -65,8 +60,6 @@ void StatusLed::poll() {
 					if (bCnt[i] == 0) {
 						off(i);													// stop blinking next time
 					}
-
-					hmPtr->stayAwake(toggle_nTime + 100);
 				}
 			}
 		}
