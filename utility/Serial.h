@@ -57,12 +57,12 @@ extern const InputParser::Commands cmdTab[];
 //- some support for serial function
 template<class T> inline Print &operator <<(Print &obj, T arg) { obj.print(arg); return obj; }
 
-char pCharPGM(const uint8_t *buf);														// print the content from PROGMEM
-char pHexPGM(const uint8_t *buf, uint8_t len);											// print a couple of bytes in HEX format
-char pHexB(uint8_t val);																// print one byte in HEX format
-char pHex(uint8_t *buf, uint8_t len);													// print a couple of bytes in HEX format
-char pHexL(uint8_t *buf, uint8_t len);													// same as pHex, but adds on end the length in brackets
-char pTime(void);																		// print a time stamp in brackets
+char pCharPGM(const uint8_t *buf);												// print the content from PROGMEM
+char pHexPGM(const uint8_t *buf, uint8_t len);									// print a couple of bytes in HEX format
+char pHexB(uint8_t val);														// print one byte in HEX format
+char pHex(uint8_t *buf, uint8_t len);											// print a couple of bytes in HEX format
+char pHexL(uint8_t *buf, uint8_t len);											// same as pHex, but adds on end the length in brackets
+char pTime(void);																// print a time stamp in brackets
 
 
 #endif

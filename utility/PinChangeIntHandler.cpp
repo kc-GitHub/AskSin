@@ -47,14 +47,14 @@ void registerInt(uint8_t tPin, s_dlgt tDelegate) {
 	pinMode(tPin,INPUT_PULLUP);															// switch pin to input
 
 	*intMask[pSlot] |= digitalPinToBitMask(tPin);										// set the pin in the respective PCMSK
-	//Serial << "iM:" << *intMask[pSlot] << '\n';
+	//Serial << F("iM:") << *intMask[pSlot] << "\n";
 	PCICR |= (1 << pSlot);
 	
 	//PCICR |= _BV(pSlot);																// register PCMSK in interrupt change register
 
 	portByte[pSlot] = *pinPort[pSlot] & *intMask[pSlot];								// remember the byte in the current port to figure out changes
 
-	//Serial << "pin:" << tPin << " pSlot:" << pSlot << " pB:" << portByte[pSlot] << '\n';
+	//Serial << F("pin:") << tPin << F(" pSlot:") << pSlot << F(" pB:") << portByte[pSlot] << F("\n");
 	sei();
 
 }

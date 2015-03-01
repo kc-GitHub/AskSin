@@ -24,7 +24,7 @@ void StatusLed::poll() {
 	for (uint8_t i = 0; i < 2; i++) {
 
 		if (nTime[i] > 0 && (millis() - startTime[i] >= nTime[i])) {
-			//	Serial << "LED:" <<i << ", mode:" << mode[i] << ", bCnt:" << bCnt[i];
+			//	Serial << F("LED:") <<i << F(", mode:") << mode[i] << F(", bCnt:") << bCnt[i];
 
 			short toggle_nTime = 0;
 			if (mode[i] == STATUSLED_MODE_OFF) {

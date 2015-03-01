@@ -82,7 +82,7 @@ void SHT10_BMP085_TSL2561::pairSetEvent(uint8_t *data, uint8_t len) {
 		Serial << F("pairSetEvent, value:") << pHexB(data[0]);
 		if (len > 1) Serial << F(", rampTime: ") << pHexB(data[1]);
 		if (len > 2) Serial << F(", duraTime: ") << pHexB(data[2]);
-		Serial << '\n';
+		Serial << F("\n");
 	#endif
 
 	hm->sendACKStatus(regCnl,modStat,0);
@@ -244,7 +244,7 @@ void SHT10_BMP085_TSL2561::poll_measureTHP(void) {
 
 		sht10->measHumi(&rawData);
 		tHum = sht10->calcHumi(rawData, temp);
-		//	Serial << "raw: " << rawData << "  mH: " << tHum << '\n';
+		//	Serial << F("raw: ") << rawData << F("  mH: ") << tHum << (F("\n");
 	}
 
 	if (bm180 != NULL) {														// only if we have a valid module

@@ -50,7 +50,7 @@ void Buttons::buttonAction(uint8_t btnEvent) {
 	if (btnEvent == BTN_ACTION_STAY_AWAKE) return;										// was only a wake up message
 
 	#ifdef DM_DBG
-		Serial << "i:" << regCnl << ", s:" << btnEvent << '\n';							// some debug message
+		Serial << F("i:") << regCnl << F(", s:") << btnEvent << F("\n");				// some debug message
 	#endif
 	
 	if (regCnl == 0) {																	// config button mode
@@ -102,7 +102,7 @@ void Buttons::configCngEvent(void) {
 	}
 
 	#ifdef DM_DBG
-		Serial << F("config change; cnl: ") << regCnl << F(", longPress: ") << list1->longPress << F(", sign: ") << list1->sign << F(", dblPress: ") << list1->dblPress  << '\n';
+		Serial << F("config change; cnl: ") << regCnl << F(", longPress: ") << list1->longPress << F(", sign: ") << list1->sign << F(", dblPress: ") << list1->dblPress  << F("\n");
 	#endif
 }
 
@@ -114,7 +114,7 @@ void Buttons::pairSetEvent(uint8_t *data, uint8_t len) {
 		Serial << F("pairSetEvent, value:") << pHexB(data[0]);
 		if (len > 1) Serial << F(", rampTime: ") << pHexB(data[1]);
 		if (len > 2) Serial << F(", duraTime: ") << pHexB(data[2]);
-		Serial << '\n';
+		Serial << F("\n");
 	#endif
 		
 	hm->sendACKStatus(regCnl,modStat,0);
@@ -133,7 +133,7 @@ void Buttons::peerMsgEvent(uint8_t type, uint8_t *data, uint8_t len) {
 	// we received a peer event, in type you will find the marker if it was a switch(3E), remote(40) or sensor(41) event
 	// appropriate answer is an ACK
 	#ifdef DM_DBG
-	Serial << F("peerMsgEvent, type: ")  << pHexB(type) << F(", data: ")  << pHex(data,len) << '\n';
+	Serial << F("peerMsgEvent, type: ")  << pHexB(type) << F(", data: ")  << pHex(data,len) << F("\n");
 	#endif
 	
 	hm->send_ACK();
@@ -161,7 +161,7 @@ void Buttons::poll(void) {
 		buttonAction(BTN_ACTION_LONG_DOUBLE_TIMEOUT);									// fire double timeout action
 
 		#ifdef BTN_DBG
-			Serial.println("bt: LONG_DOUBLE_TIMEOUT");	buttonAction(BTN_ACTION_STAY_AWAKE);
+			Serial << F("bt: LONG_DOUBLE_TIMEOUT");	buttonAction(BTN_ACTION_STAY_AWAKE);
 		#endif
 	}
 
@@ -171,7 +171,7 @@ void Buttons::poll(void) {
 
 	btnHasChanged = 0;
 	#ifdef BTN_DBG
-		Serial << "bt: " << btnTimer << "\n";
+		Serial << F("bt: ") << btnTimer << F("\n");
 	#endif
 
 	if (btnStateCurrent == BTN_PRESSED) {												// detect key press
@@ -184,7 +184,7 @@ void Buttons::poll(void) {
 				buttonAction(BTN_ACTION_LONG_DOUBLE);									// fire double long action
 
 				#ifdef BTN_DBG
-					Serial.println("bt: LONG_DOUBLE");
+					Serial << F("bt: LONG_DOUBLE");
 				#endif
 
 			} else {																	// long repeated key press detected
@@ -197,7 +197,7 @@ void Buttons::poll(void) {
 						btnRepeatTimer = mills;
 
 						#ifdef BTN_DBG
-							Serial.println("bt: LONG_REPEAT");
+							Serial << F("bt: LONG_REPEAT");
 						#endif
 					}
 				}
@@ -213,7 +213,7 @@ void Buttons::poll(void) {
 			buttonAction(BTN_ACTION_LONG_DOUBLE_TIMEOUT);								// we fire double timeout action
 
 			#ifdef BTN_DBG
-				Serial.println("bt: LONG_DOUBLE_TIMEOUT");
+				Serial << F("bt: LONG_DOUBLE_TIMEOUT");
 			#endif
 
 		} else {
@@ -224,7 +224,7 @@ void Buttons::poll(void) {
 					buttonAction(BTN_ACTION_LONG_END);									// fire long end action
 
 					#ifdef BTN_DBG
-						Serial.println("bt: LONG_END");
+						Serial << F("bt: LONG_END");
 					#endif
 				}
 
@@ -236,7 +236,7 @@ void Buttons::poll(void) {
 					buttonAction(BTN_ACTION_SHORT_DOUBLE);								// double short key press
 
 					#ifdef BTN_DBG
-						Serial.println("bt: SHORT_DOUBLE");
+						Serial << F("bt: SHORT_DOUBLE");
 					#endif
 
 				} else {
@@ -246,7 +246,7 @@ void Buttons::poll(void) {
 						buttonAction(BTN_ACTION_SHORT_SINGLE);							// fire single short action
 
 						#ifdef BTN_DBG
-							Serial.println("bt: SHORT_SINGLE");
+							Serial << F("bt: SHORT_SINGLE");
 						#endif
 					}
 				}
@@ -281,7 +281,7 @@ void Buttons::peerAddEvent(uint8_t *data, uint8_t len) {
 	// 1st byte and 2nd byte shows the peer channel, 3rd and 4th byte gives the peer index
 	// no need for sending an answer, but we could set default data to the respective list3/4
 	#ifdef DM_DBG
-		Serial << F("peerAddEvent: pCnl1: ") << pHexB(data[0]) << F(", pCnl2: ") << pHexB(data[1]) << F(", pIdx1: ") << pHexB(data[2]) << F(", pIdx2: ") << pHexB(data[3]) << '\n';
+		Serial << F("peerAddEvent: pCnl1: ") << pHexB(data[0]) << F(", pCnl2: ") << pHexB(data[1]) << F(", pIdx1: ") << pHexB(data[2]) << F(", pIdx2: ") << pHexB(data[3]) << F("\n");
 	#endif
 	
 	if ((data[0]) && (data[1])) {																		// dual peer add

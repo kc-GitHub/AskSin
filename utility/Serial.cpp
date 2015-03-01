@@ -191,7 +191,7 @@ char pHexPGM(const uint8_t *buf, uint8_t len) {
 	for (uint8_t i=0; i<len; i++) {
 		
 		pHexB(pgm_read_byte(&buf[i]));
-		if(i+1 < len) Serial << ' ';
+		if(i+1 < len) Serial << F(" ");
 	}
 	return 0;
 }
@@ -203,7 +203,7 @@ char pHexB(uint8_t val) {
 char pHex(uint8_t *buf, uint8_t len) {
 	for (uint8_t i=0; i<len; i++) {
 		pHexB(buf[i]);
-		if(i+1 < len) Serial << ' ';
+		if(i+1 < len) Serial << F(" ");
 	}
 	return 0;
 }

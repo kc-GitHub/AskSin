@@ -48,7 +48,7 @@ void    CC110x::init(void) {													// initialize CC1101
 	_delay_ms(10);
 
 	#if defined(CC_DBG)
-		Serial << '1';
+		Serial << F("1");
 	#endif
 
 	// define init settings for TRX868
@@ -97,7 +97,7 @@ void    CC110x::init(void) {													// initialize CC1101
 	}
 
 	#if defined(CC_DBG)
-		Serial << '2';
+		Serial << F("2");
 	#endif
 
 	cmdStrobe(CC1101_SCAL);																// calibrate frequency synthesizer and turn it off
@@ -105,12 +105,12 @@ void    CC110x::init(void) {													// initialize CC1101
 		_delay_us(1);
 
 		#if defined(CC_DBG)
-			Serial << '.';
+			Serial << F(".");
 		#endif
 	}
 
 	#if defined(CC_DBG)
-		Serial << '3';
+		Serial << F("3");
 	#endif
 
 	writeReg(CC1101_PATABLE, PA_MaxPower);												// configure PATABLE
@@ -134,12 +134,12 @@ uint8_t CC110x::sendData(uint8_t *buf, uint8_t burst) {									// send data pac
 	cmdStrobe(CC1101_SFRX );															// flush RX buffer
 	cmdStrobe(CC1101_SFTX );															// flush TX buffer
 
-	//Serial << "tx\n";
+	//Serial << F("tx\n");
 
 	if (burst) {																		// BURST-bit set?
 		cmdStrobe(CC1101_STX  );														// send a burst
 		_delay_ms(359);																	// according to ELV, devices get activated every 300ms, so send burst for 360ms
-		//Serial << "send burst\n";
+		//Serial << F("send burst\n");
 	}
 	_delay_ms(1);																		// wait a short time to set TX mode
 
@@ -165,14 +165,14 @@ uint8_t CC110x::sendData(uint8_t *buf, uint8_t burst) {									// send data pac
 		Serial << F("<- ") << pHexL(&buf[0], buf[0]+1) << pTime();
 	#endif
 
-	//Serial << "rx\n";
+	//Serial << F("rx\n");
 	return true;
 }
 
 uint8_t CC110x::receiveData(uint8_t *buf) {												// read data packet from RX FIFO
 	uint8_t rxBytes = readReg(CC1101_RXBYTES, CC1101_STATUS);							// how many bytes are in the buffer
 	
-	//Serial << rxBytes << ' ';
+	//Serial << rxBytes << F(" ");
 
 	if ((rxBytes & 0x7F) && !(rxBytes & 0x80)) {										// any byte waiting to be read and no overflow?
 		buf[0] = readReg(CC1101_RXFIFO, CC1101_CONFIG);									// read data length
@@ -233,7 +233,7 @@ uint8_t CC110x::detectBurst(void) {														// wake up CC1101 from power do
 	_delay_ms(3);																		// wait a short time to set RX mode
 
 	// todo: check carrier sense for 5ms to avoid wakeup due to normal transmition
-	//Serial << "rx\n";
+	//Serial << F("rx\n");
 //	return bitRead(hm.cc.monitorStatus(),6);											// return the detected signal
 	return bitRead(monitorStatus(),6);													// return the detected signal
 }
@@ -242,7 +242,7 @@ void    CC110x::setPowerDownState() {													// put CC1101 into power-down 
 	cmdStrobe(CC1101_SIDLE);															// coming from RX state, we need to enter the IDLE state first
 	cmdStrobe(CC1101_SFRX);
 	cmdStrobe(CC1101_SPWD);																// enter power down state
-	//Serial << "pd\n";
+	//Serial << F("pd\n");
 }
 
 uint8_t CC110x::monitorStatus() {
