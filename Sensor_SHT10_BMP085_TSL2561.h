@@ -28,13 +28,13 @@
 #define SHT10_BMP085_TSL2561 Sensors_SHT10_BMP085_TSL2561						// module name as macro to overcome the problem of renaming functions all the time
 //#define DM_DBG																// debug message flag
 
-#define SHT10_BMP085_TSL2561_nACTION_MEASURE_INIT  1
-#define SHT10_BMP085_TSL2561_nACTION_MEASURE_L     2
-#define SHT10_BMP085_TSL2561_nACTION_CALC_L        3
-#define SHT10_BMP085_TSL2561_nACTION_MEASURE_THP   4
-#define SHT10_BMP085_TSL2561_nACTION_TRANSMIT      5
+#define SHT10_BMP085_TSL2561_nACTION_MEASURE_INIT    1
+#define SHT10_BMP085_TSL2561_nACTION_MEASURE_L       2
+#define SHT10_BMP085_TSL2561_nACTION_CALC_L          3
+#define SHT10_BMP085_TSL2561_nACTION_MEASURE_THP     4
+#define SHT10_BMP085_TSL2561_nACTION_TRANSMIT        5
 
-#define SHT10_BMP085_TSL2561_MAX_MEASURE_TIME      50
+#define SHT10_BMP085_TSL2561_MAX_MEASURE_TIME       50
 #define SHT10_BMP085_TSL2561_MINIMAL_CYCLE_LENGTH  480							// minimal cycle length in 250ms units
 
 const uint8_t peerOdd[] =    {};												// default settings for list3 or list4
@@ -77,6 +77,7 @@ class SHT10_BMP085_TSL2561 {
 
 		uint8_t  nAction;
 		uint32_t nTime;
+		uint32_t startTime;
 		uint16_t tTiming;
 
 		int16_t tTemp;

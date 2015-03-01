@@ -156,11 +156,12 @@ void     HM::setPowerMode(uint8_t mode) {
 
 	} else if (mode == POWER_MODE_BURST) {										// some power savings, RX is in burst mode
 		powr.nxtTO = 250;														// check in 250ms for a burst signal
+		powr.startMillis = millis();
 
 	} else if ((mode == POWER_MODE_SLEEP_WDT) || (mode == POWER_MODE_SLEEP_DEEP)) {	// most power savings, RX is off beside a special function where RX stay in receive for 30 sec
 		powr.nxtTO = 4000;															// after power on reset we stay 4 seconds awake to finish boot time
+		powr.startMillis = millis();
 	}
-	powr.startMillis = millis();
 
 	if (mode > POWER_MODE_ON) {
 		set_sleep_mode(SLEEP_MODE_PWR_DOWN);									// max power saving
@@ -181,7 +182,7 @@ void     HM::stayAwake(uint32_t millisAwake) {
 
 	powr.state = 1;																// remember TRX state
 
-	if (millis() - powr.startMillis < powr.nxtTO) {
+	if (millis() - powr.startMillis < (powr.nxtTO + millisAwake)) {
 		return;																	// set the new timeout only if necessary
 	}
 
@@ -616,7 +617,7 @@ void     HM::recv_poll(void) {															// handles the receive objects
 void     HM::send_poll(void) {															// handles the send queue
 	unsigned long mills = millis();
 
-	if(send.counter <= send.retries && mills - send.startMillis >= send.timer) {		// not all sends done and timing is OK
+	if(send.counter <= send.retries && (mills - send.startMillis >= send.timer)) {		// not all sends done and timing is OK
 		// here we encode and send the string
 		hm_enc(send.data);																// encode the string
 		detachInterrupt(intGDO0.nbr);													// disable interrupt otherwise we could get some new content while we copy the buffer
@@ -627,6 +628,7 @@ void     HM::send_poll(void) {															// handles the send queue
 		// setting some variables
 		send.counter++;																	// increase send counter
 		send.timer = dParm.timeOut;														// set the timer for next action
+		send.startMillis = mills;
 		powr.state = 1;																	// remember TRX module status, after sending it is always in RX mode
 
 		if ((powr.mode > POWER_MODE_ON)) {
@@ -649,7 +651,7 @@ void     HM::send_poll(void) {															// handles the send queue
 		send.timer = 0;																	// clear send flag
 	}
 	
-	if(send.counter > send.retries && mills - send.startMillis >= send.timer) {			// max retries arrived, but seems to have no answer
+	if(send.counter > send.retries && (mills - send.startMillis >= send.timer)) {		// max retries arrived, but seems to have no answer
 		send.counter = 0;
 		send.timer = 0;																	// cleanup of send buffer
 		// todo: error handling, here we could jump some were to blink a led or whatever
@@ -666,7 +668,6 @@ void     HM::send_poll(void) {															// handles the send queue
 		#endif
 	}
 
-	send.startMillis = mills;
 }																						// ready, should work
 
 void     HM::send_conf_poll(void) {
@@ -800,9 +801,9 @@ void     HM::power_poll(void) {
 			powr.nxtTO = TIMEOUT_AFTER_SENDING;									// schedule next timeout with some delay
 			Serial << F("BURST !!! \n");
 		} else {																// no burst was detected, go to sleep in next cycle
-			powr.nxtTO = 0;														// set timer accordingly
+			powr.nxtTO = 1;														// set timer accordingly
+			powr.startMillis = mills;
 		}
-		powr.startMillis = mills;
 
 		powr.state = 1;
 		return;

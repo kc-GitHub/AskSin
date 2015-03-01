@@ -9,9 +9,19 @@
 #include <Wire.h>
 
 //- user code here --------------------------------------------------------------------------------------------------------
+/**
+ * @params	data	pointer to data port pin
+ * @params	sck		pointer to sck port pin
+ * @params	timing	0: use send slot: >0: ms send interval
+ * @params	tPtr	Pointer so SHT10 class
+ * @params	pPtr	Pointer so BMP180 class
+ * @params	lPtr	Pointer so TSL2561 class
+ */
 void SHT10_BMP085_TSL2561::config(uint8_t data, uint8_t sck, uint16_t timing, Sensirion *tPtr, BMP085 *pPtr, TSL2561 *lPtr) {
 	tTiming = timing;
-	nTime = millis() + 1000;													// set the first time we like to measure
+	nTime = 1000;																// set the first time we like to measure
+	startTime = millis();
+
 	nAction = SHT10_BMP085_TSL2561_nACTION_MEASURE_INIT;
 	tsl2561InitCount = 0;
 
@@ -39,17 +49,16 @@ void SHT10_BMP085_TSL2561::config(uint8_t data, uint8_t sck, uint16_t timing, Se
 }
 
 void SHT10_BMP085_TSL2561::poll_transmit(void) {
-	unsigned long mils = millis();
-
 	if (tTiming) {
-		nTime = mils + tTiming;													// there is a given timing
+		nTime = tTiming;																// there is a given timing
 	} else {
-		nTime = mils + (calcSendSlot() * 250) - SHT10_BMP085_TSL2561_MAX_MEASURE_TIME; // calculate the next send slot by multiplying with 250ms to get the time in millis
+		nTime = (calcSendSlot() * 250) - SHT10_BMP085_TSL2561_MAX_MEASURE_TIME; 		// calculate the next send slot by multiplying with 250ms to get the time in millis
 	}
+	startTime = millis();
 
-	hm->sendPeerWEATHER(regCnl, tTemp, tHum, tPres, tLux);						// send out the weather event
+	hm->sendPeerWEATHER(regCnl, tTemp, tHum, tPres, tLux);								// send out the weather event
 
-	nAction = SHT10_BMP085_TSL2561_nACTION_MEASURE_INIT;						// next time we want to measure again
+	nAction = SHT10_BMP085_TSL2561_nACTION_MEASURE_INIT;								// next time we want to measure again
 }
 
 uint32_t SHT10_BMP085_TSL2561::calcSendSlot(void) {
@@ -124,14 +133,15 @@ void SHT10_BMP085_TSL2561::poll(void) {
 		tsl2561->clearInterrupt();
 	}
 
-	unsigned long mils = millis();
+	unsigned long mills = millis();
 
 	// just polling, as the function name said
-	if ((nTime == 0) || (nTime > mils)) {										// check if it is time to jump in
+	if (nTime == 0 || (mills - startTime < nTime)) {								// check if it is time to jump in
 		return;
 	}
 
-	nTime += SHT10_BMP085_TSL2561_MAX_MEASURE_TIME;
+	nTime = SHT10_BMP085_TSL2561_MAX_MEASURE_TIME;
+	startTime = mills;
 
 	//Serial.print("nAction: "); Serial.println(nAction); _delay_ms(50);
 
