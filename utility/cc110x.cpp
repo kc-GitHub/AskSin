@@ -162,7 +162,7 @@ uint8_t CC110x::sendData(uint8_t *buf, uint8_t burst) {									// send data pac
 	//delayMicroseconds(10);
 
 	#if defined(CC_DBG)																	// some debug message
-		Serial << F("<- ") << pHexL(&buf[0], buf[0]+1) << pTime();
+		Serial << F("<- "); pHex(&buf[0], buf[0]+1, SERIAL_DBG_MODE_LEN | SERIAL_DBG_PHEX_MODE_TIME);
 	#endif
 
 	//Serial << F("rx\n");
@@ -198,7 +198,7 @@ uint8_t CC110x::receiveData(uint8_t *buf) {												// read data packet from 
 //	trx868.rfState = RFSTATE_RX;														// declare to be in Rx state
 
 	#if defined(CC_DBG)																	// debug message, string should be short, otherwise program stops
-		if (buf[0] > 0) Serial << pHexL(&buf[1], buf[0]) << pTime();
+		if (buf[0] > 0) Serial; pHex(&buf[1], buf[0], SERIAL_DBG_MODE_LEN | SERIAL_DBG_PHEX_MODE_TIME);
 	#endif
 
 	return buf[0];																		// return the data buffer

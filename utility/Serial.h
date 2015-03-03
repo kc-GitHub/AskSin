@@ -54,15 +54,18 @@ class InputParser {
 };
 extern const InputParser::Commands cmdTab[];
 
+#define SERIAL_DBG_PHEX_MODE_NONE    0
+#define SERIAL_DBG_PHEX_MODE_LEN     1
+#define SERIAL_DBG_PHEX_MODE_LF      2
+#define SERIAL_DBG_PHEX_MODE_TIME    4
+
 //- some support for serial function
 template<class T> inline Print &operator <<(Print &obj, T arg) { obj.print(arg); return obj; }
 
-char pCharPGM(const uint8_t *buf);												// print the content from PROGMEM
-char pHexPGM(const uint8_t *buf, uint8_t len);									// print a couple of bytes in HEX format
-char pHexB(uint8_t val);														// print one byte in HEX format
-char pHex(uint8_t *buf, uint8_t len);											// print a couple of bytes in HEX format
-char pHexL(uint8_t *buf, uint8_t len);											// same as pHex, but adds on end the length in brackets
-char pTime(void);																// print a time stamp in brackets
-
+void pCharPGM(const uint8_t *buf);												// print the content from PROGMEM
+void pHexPGM(const uint8_t *buf, uint8_t len);									// print a couple of bytes in HEX format
+void pHexB(uint8_t val);														// print one byte in HEX format
+void pHex(uint8_t *buf, uint8_t len, uint8_t mode);								// print a couple of bytes in HEX format
+void pTime(void);																// print a time stamp in brackets
 
 #endif

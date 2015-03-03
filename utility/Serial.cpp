@@ -182,37 +182,38 @@ InputParser& InputParser::operator >> (const char*& v) {
 }
 
 //- serial print functions
-char pCharPGM(const uint8_t *buf) {
+void pCharPGM(const uint8_t *buf) {
 	char c;
-	while (( c = pgm_read_byte(buf++)) != 0) Serial << c;
-	return 0;
+	while (( c = pgm_read_byte(buf++)) != 0) {
+		Serial << c;
+	}
 }
-char pHexPGM(const uint8_t *buf, uint8_t len) {
+
+void pHexPGM(const uint8_t *buf, uint8_t len) {
 	for (uint8_t i=0; i<len; i++) {
 		
 		pHexB(pgm_read_byte(&buf[i]));
-		if(i+1 < len) Serial << F(" ");
+		if(i+1 < len) {
+			Serial << F(" ");
+		}
 	}
-	return 0;
 }
-char pHexB(uint8_t val) {
+
+void pHexB(uint8_t val) {
 	const char hexDigits[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 	Serial << hexDigits[val >> 4] << hexDigits[val & 0xF];
-	return 0;
 }
-char pHex(uint8_t *buf, uint8_t len) {
+
+void pHex(uint8_t *buf, uint8_t len, uint8_t mode) {
 	for (uint8_t i=0; i<len; i++) {
 		pHexB(buf[i]);
 		if(i+1 < len) Serial << F(" ");
 	}
-	return 0;
+	if (mode && SERIAL_DBG_PHEX_MODE_LEN) Serial << F(" (l:") << len << F(")");
+	if (mode && SERIAL_DBG_PHEX_MODE_TIME) pTime();
+	if (mode && SERIAL_DBG_PHEX_MODE_LF) Serial << F("\n");
 }
-char pHexL(uint8_t *buf, uint8_t len) {
-	pHex(buf,len);
-	Serial << F(" (l:") << len << F(")");
-	return 0;
-}
-char pTime(void) {
+
+void pTime(void) {
 	Serial << F(" (") << millis() << F(")\n");
-	return 0;
 }

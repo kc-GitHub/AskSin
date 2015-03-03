@@ -22,11 +22,6 @@ uint8_t bCast[] = {0,0,0,0};													// broad cast address
 //  public://--------------------------------------------------------------------------------------------------------------
 //- homematic public protocol functions
 void     HM::init(void) {
-	#ifdef AS_DBG || AS_DBG_Explain
-		Serial.begin(57600);													// serial setup
-		//Serial << F("AskSin debug enabled...\n");								// ...and some information
-	#endif
-
 	// register handling setup
 	prepEEprom();																// check the eeprom for first time boot, prepares the eeprom and loads the defaults
 	loadRegs();
@@ -206,8 +201,9 @@ void     HM::printConfig(void) {
 		Serial << F("cnl:") << t.cnl  << F(", lst:") << t.lst <<  F(", pMax:") << t.pMax <<  F("\n");
 		Serial << F("idx:") << t.sIdx << F(", len:") << t.sLen << F(", addr:") << t.pAddr << F("\n");
 		
-		Serial << F("regs: ") << pHex(dDef.slPtr + t.sIdx, t.sLen) << F("\n");
-		Serial << F("data: ") << pHex((uint8_t*)t.pRegs, t.sLen) << F(" ");
+		Serial << F("regs: "); pHex(dDef.slPtr + t.sIdx, t.sLen, SERIAL_DBG_PHEX_MODE_LF);
+		Serial << F("data: "); pHex((uint8_t*)t.pRegs, t.sLen, SERIAL_DBG_PHEX_MODE_NONE);
+		Serial << F(" ");
 
 		if (t.pMax == 0) {
 			Serial << F("\n\n");
@@ -216,13 +212,15 @@ void     HM::printConfig(void) {
 		
 		for (uint8_t j = 1; j < t.pMax; j++) {
 			getCnlListByPeerIdx(t.cnl, j);										// load list3/4
-			Serial << pHex((uint8_t*)t.pRegs, t.sLen) << ' ';
+			Serial; pHex((uint8_t*)t.pRegs, t.sLen, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial<< F(" ");
 		}
 
 		Serial << F("\n");
 		for (uint8_t j = 0; j < t.pMax; j++) {
 			getPeerByIdx(t.cnl, j, peer);
-			Serial << pHex(peer, 4) << F("   ");
+			pHex(peer, 4, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F("   ");
 		}
 		Serial << F("\n\n");
 	}
@@ -284,7 +282,7 @@ void     HM::loadDefaults(void) {
 			}
 			
 			#ifdef RPDB_DBG														// some debug message
-				Serial << F("cnl:") << t->cnl << F(", lst:") << t->lst << F(", idx:") << t->pIdx << ", addr:" << eeAddr << ", data: " << pHexPGM(t->b, t->len) << F("\n");
+				Serial << F("cnl:") << t->cnl << F(", lst:") << t->lst << F(", idx:") << t->pIdx << ", addr:" << eeAddr << ", data: "; pHexPGM(t->b, t->len, SERIAL_DBG_PHEX_MODE_LF);
 			#endif
 		}
 
@@ -302,7 +300,7 @@ void     HM::loadRegs(void) {
 
 	// fill the master id
 	uint8_t ret = getRegAddr(0,0,0,0x0a,3,dParm.MAID);							// get regs for 0x0a
-	//Serial << F("MAID:") << pHex(dParm.MAID,3) << F("\n");
+	//Serial << F("MAID:"); pHex(dParm.MAID,3, SERIAL_DBG_PHEX_MODE_LF)
 }
 
 void     HM::regCnlModule(uint8_t cnl, s_mod_dlgt Delegate, uint16_t *mainList, uint16_t *peerList) {
@@ -443,7 +441,9 @@ void     HM::sendPeerREMOTE(uint8_t cnl, uint8_t longPress, uint8_t lowBat) {
 	pevt.len = 2;																// 2 bytes payload
 
 	pevt.act = 1;																		// active, 1 = yes, 0 = no
-	//Serial << F("remote; cdpIdx:") << pevt.cdpIdx << F(", type:") << pHexB(pevt.type) << F(", rACK:") << pHexB(pevt.reqACK) << F(", msgCnt:") << pevt.msgCnt << F(", data:") << pHex(pevt.data,pevt.len) << F("\n");
+	//Serial << F("remote; cdpIdx:") << pevt.cdpIdx << F(", type:"); pHexB(pevt.type)
+	//Serial << F(", rACK:"); pHexB(pevt.reqACK)
+	//Serial << F(", msgCnt:") << pevt.msgCnt << F(", data:"); pHex(pevt.data,pevt.len, SERIAL_DBG_PHEX_MODE_LF);
 }
 
 void     HM::sendPeerWEATHER(uint8_t cnl, int16_t temp, uint8_t hum, uint16_t pres, uint32_t lux) {
@@ -522,8 +522,10 @@ void     HM::recv_poll(void) {															// handles the receive objects
 			Serial << F("l> ");
 		}
 
-		Serial << pHexL(recv.data, recv.data[0]+1) << pTime();
-		exMsg(recv.data);																// explain message
+		pHex(recv.data, recv.data[0]+1, SERIAL_DBG_PHEX_MODE_LEN | SERIAL_DBG_PHEX_MODE_TIME);
+		#ifdef AS_DBG_Explain
+			exMsg(recv.data);																// explain message
+		#endif
 	#endif
 
 	// if it's not for us or a broadcast message we could skip
@@ -630,7 +632,7 @@ void     HM::send_poll(void) {															// handles the send queue
 		}
 
 		#if defined(AS_DBG)																// some debug messages
-			Serial << F("<- ") << pHexL(send.data, send.data[0]+1); pTime();
+			Serial << F("<- "); pHex(send.data, send.data[0]+1, SERIAL_DBG_PHEX_MODE_LEN | SERIAL_DBG_PHEX_MODE_TIME);
 		#endif
 
 		if (pevt.act == 1) {
@@ -658,7 +660,7 @@ void     HM::send_poll(void) {															// handles the send queue
 		}
 
 		#if defined(AS_DBG)
-			Serial << F("-> NA ") << pTime();
+			Serial << F("-> NA "); pTime();
 		#endif
 	}
 
@@ -749,7 +751,7 @@ void     HM::send_peer_poll(void) {
 	// step through the peers, get the respective list4 and send the message
 	uint32_t tPeer;
 	uint8_t ret = getPeerByIdx(_pgmB(&t->cnl),pPtr,(uint8_t*)&tPeer);									
-	//Serial << F("pP:") << pPtr << F(", tp:") << pHex((uint8_t*)&tPeer,4) << F("\n");
+	//Serial << F("pP:") << pPtr << F(", tp:"); pHex((uint8_t*)&tPeer,4, SERIAL_DBG_PHEX_MODE_LF);
 	if (tPeer == 0) {
 		pPtr++;
 		return;
@@ -763,7 +765,8 @@ void     HM::send_peer_poll(void) {
 	// AES will be ignored at the moment, but burst needed will be translated into the message flag - bit 0 in regLstByte, translated to bit 4 = burst transmission in msgFlag
 	uint8_t lB[1];
 	getRegAddr(_pgmB(&t->cnl),_pgmB(&t->lst),pPtr++,0x01,1,lB);							// get regs for 0x01
-	//Serial << F("rB:") << pHexB(lB[0]) << F("\n");
+	//Serial << F("rB:"); pHexB(lB[0]);
+	//Serial << F("\n")
 	send_prep(send.mCnt++,(0x82|pevt.reqACK|bitRead(lB[0],0)<<4),pevt.type,(uint8_t*)&tPeer,pevt.data,pevt.len); // prepare the message
 }
 
@@ -893,148 +896,204 @@ void     HM::hm_dec(uint8_t *buf) {
 }
 void     HM::exMsg(uint8_t *buf) {
 	#ifdef AS_DBG_Explain
-
-	#define b_len			buf[0]
-	#define b_msgTp			buf[3]
-	#define b_by10			buf[10]
-	#define b_by11			buf[11]
-
-	Serial << F("   ");																	// save some byte and send 3 blanks once, instead of having it in every if
+		#define b_len   buf[0]
+		#define b_msgTp buf[3]
+		#define b_by10  buf[10]
+		#define b_by11  buf[11]
 	
-	if        ((b_msgTp == 0x00)) {
-		Serial << F("DEVICE_INFO; fw: ") << pHex(&buf[10],1) << F(", type: ") << pHex(&buf[11],2) << F(", serial: ") << pHex(&buf[13],10) << F("\n");
-		Serial << F("              , class: ") << pHex(&buf[23],1) << F(", pCnlA: ") << pHex(&buf[24],1) << F(", pCnlB: ") << pHex(&buf[25],1) << F(", na: ") << pHex(&buf[26],1);
+		Serial << F("   ");																	// save some byte and send 3 blanks once, instead of having it in every if
+		
+		if        ((b_msgTp == 0x00)) {
+			Serial << F("DEVICE_INFO; fw: "); pHex(&buf[10],1, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", type: "); pHex(&buf[11],2, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", serial: "); pHex(&buf[13],10, SERIAL_DBG_PHEX_MODE_LF);
+			Serial << F("              , class: "); pHex(&buf[23],1, SERIAL_DBG_PHEX_MODE_NONE)
+			Serial << F(", pCnlA: "); pHex(&buf[24],1, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", pCnlB: "); pHex(&buf[25],1, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", na: "); pHex(&buf[26],1, SERIAL_DBG_PHEX_MODE_NONE);
 
 		} else if ((b_msgTp == 0x01) && (b_by11 == 0x01)) {
-		Serial << F("CONFIG_PEER_ADD; cnl: ") << pHex(&buf[10],1) << F(", peer: ") << pHex(&buf[12],3) << F(", pCnlA: ") << pHex(&buf[15],1) << F(", pCnlB: ") << pHex(&buf[16],1);
+			Serial << F("CONFIG_PEER_ADD; cnl: "); pHex(&buf[10],1, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", peer: "); pHex(&buf[12],3, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", pCnlA: "); pHex(&buf[15],1, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", pCnlB: "); pHex(&buf[16],1, SERIAL_DBG_PHEX_MODE_NONE);
 
 		} else if ((b_msgTp == 0x01) && (b_by11 == 0x02)) {
-		Serial << F("CONFIG_PEER_REMOVE; cnl: ") << pHex(&buf[10],1) << F(", peer: ") << pHex(&buf[12],3) << F(", pCnlA: ") << pHex(&buf[15],1) << F(", pCnlB: ") << pHex(&buf[16],1);
+			Serial << F("CONFIG_PEER_REMOVE; cnl: "); pHex(&buf[10],1, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", peer: "); pHex(&buf[12],3, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", pCnlA: "); pHex(&buf[15],1, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", pCnlB: "); pHex(&buf[16],1, SERIAL_DBG_PHEX_MODE_NONE);
 
 		} else if ((b_msgTp == 0x01) && (b_by11 == 0x03)) {
-		Serial << F("CONFIG_PEER_LIST_REQ; cnl: ") << pHex(&buf[10],1);
+			Serial << F("CONFIG_PEER_LIST_REQ; cnl: "); pHex(&buf[10],1, SERIAL_DBG_PHEX_MODE_NONE);
 
 		} else if ((b_msgTp == 0x01) && (b_by11 == 0x04)) {
-		Serial << F("CONFIG_PARAM_REQ; cnl: ") << pHex(&buf[10],1) << F(", peer: ") << pHex(&buf[12],3) << F(", pCnl: ") << pHex(&buf[15],1) << F(", lst: ") << pHex(&buf[16],1);
+			Serial << F("CONFIG_PARAM_REQ; cnl: "); pHex(&buf[10],1, SERIAL_DBG_PHEX_MODE_NONE)
+			Serial << F(", peer: "); pHex(&buf[12],3, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", pCnl: "); pHex(&buf[15],1, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", lst: "); pHex(&buf[16],1, SERIAL_DBG_PHEX_MODE_NONE);
 
 		} else if ((b_msgTp == 0x01) && (b_by11 == 0x05)) {
-		Serial << F("CONFIG_START; cnl: ") << pHex(&buf[10],1) << F(", peer: ") << pHex(&buf[12],3) << F(", pCnl: ") << pHex(&buf[15],1) << F(", lst: ") << pHex(&buf[16],1);
+			Serial << F("CONFIG_START; cnl: "); pHex(&buf[10],1, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", peer: "); pHex(&buf[12],3, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", pCnl: "); pHex(&buf[15],1, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", lst: "); pHex(&buf[16],1, SERIAL_DBG_PHEX_MODE_NONE);
 
 		} else if ((b_msgTp == 0x01) && (b_by11 == 0x06)) {
-		Serial << F("CONFIG_END; cnl: ") << pHex(&buf[10],1);
+			Serial << F("CONFIG_END; cnl: "); pHex(&buf[10],1, SERIAL_DBG_PHEX_MODE_NONE);
 
 		} else if ((b_msgTp == 0x01) && (b_by11 == 0x08)) {
-		Serial << F("CONFIG_WRITE_INDEX; cnl: ") << pHex(&buf[10],1) << F(", data: ") << pHex(&buf[12],(buf[0]-11));
+			Serial << F("CONFIG_WRITE_INDEX; cnl: "); pHex(&buf[10],1, SERIAL_DBG_PHEX_MODE_NONE)
+			Serial << F(", data: "); pHex(&buf[12],(buf[0]-11), SERIAL_DBG_PHEX_MODE_NONE);
 
 		} else if ((b_msgTp == 0x01) && (b_by11 == 0x09)) {
-		Serial << F("CONFIG_SERIAL_REQ");
-		
+			Serial << F("CONFIG_SERIAL_REQ");
+
 		} else if ((b_msgTp == 0x01) && (b_by11 == 0x0A)) {
-		Serial << F("PAIR_SERIAL, serial: ") << pHex(&buf[12],10);
+			Serial << F("PAIR_SERIAL, serial: "); pHex(&buf[12],10, SERIAL_DBG_PHEX_MODE_NONE);
 
 		} else if ((b_msgTp == 0x01) && (b_by11 == 0x0E)) {
-		Serial << F("CONFIG_STATUS_REQUEST, cnl: ") << pHex(&buf[10],1);
+			Serial << F("CONFIG_STATUS_REQUEST, cnl: "); pHex(&buf[10],1, SERIAL_DBG_PHEX_MODE_NONE);
 
 		} else if ((b_msgTp == 0x02) && (b_by10 == 0x00)) {
-		if (b_len == 0x0A) Serial << F("ACK");
-		else Serial << F("ACK; data: ") << pHex(&buf[11],b_len-10);
+			if (b_len == 0x0A) Serial << F("ACK");
+			else Serial << F("ACK; data: "); pHex(&buf[11],b_len-10, SERIAL_DBG_PHEX_MODE_NONE);
 
 		} else if ((b_msgTp == 0x02) && (b_by10 == 0x01)) {
-		Serial << F("ACK_STATUS; cnl: ") << pHex(&buf[11],1) << F(", status: ") << pHex(&buf[12],1) << F(", down/up/loBat: ") << pHex(&buf[13],1);
-		if (b_len > 13) Serial << F(", rssi: ") << pHex(&buf[14],1);
+			Serial << F("ACK_STATUS; cnl: "); pHex(&buf[11],1, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", status: "); pHex(&buf[12],1, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", down/up/loBat: "); pHex(&buf[13],1, SERIAL_DBG_PHEX_MODE_NONE);
+			if (b_len > 13) Serial << F(", rssi: "); pHex(&buf[14],1, SERIAL_DBG_PHEX_MODE_NONE);
 
 		} else if ((b_msgTp == 0x02) && (b_by10 == 0x02)) {
-		Serial << F("ACK2");
-		
+			Serial << F("ACK2");
+
 		} else if ((b_msgTp == 0x02) && (b_by10 == 0x04)) {
-		Serial << F("ACK_PROC; para1: ") << pHex(&buf[11],2) << F(", para2: ") << pHex(&buf[13],2) << F(", para3: ") << pHex(&buf[15],2) << F(", para4: ") << pHex(&buf[17],1);
+			Serial << F("ACK_PROC; para1: "); pHex(&buf[11],2, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", para2: "); pHex(&buf[13],2, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", para3: "); pHex(&buf[15],2, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", para4: "); pHex(&buf[17],1, SERIAL_DBG_PHEX_MODE_NONE);
 
 		} else if ((b_msgTp == 0x02) && (b_by10 == 0x80)) {
-		Serial << F("NACK");
+			Serial << F("NACK");
 
 		} else if ((b_msgTp == 0x02) && (b_by10 == 0x84)) {
-		Serial << F("NACK_TARGET_INVALID");
-		
+			Serial << F("NACK_TARGET_INVALID");
+
 		} else if ((b_msgTp == 0x03)) {
-		Serial << F("AES_REPLY; data: ") << pHex(&buf[10],b_len-9);
-		
+			Serial << F("AES_REPLY; data: "); pHex(&buf[10],b_len-9, SERIAL_DBG_PHEX_MODE_NONE);
+
 		} else if ((b_msgTp == 0x04) && (b_by10 == 0x01)) {
-		Serial << F("TOpHMLAN:SEND_AES_CODE; cnl: ") << pHex(&buf[11],1);
+			Serial << F("TOpHMLAN:SEND_AES_CODE; cnl: "); pHex(&buf[11],1, SERIAL_DBG_PHEX_MODE_NONE);
 
 		} else if ((b_msgTp == 0x04)) {
-		Serial << F("TO_ACTOR:SEND_AES_CODE; code: ") << pHex(&buf[11],1);
-		
+			Serial << F("TO_ACTOR:SEND_AES_CODE; code: "); pHex(&buf[11],1, SERIAL_DBG_PHEX_MODE_NONE);
+
 		} else if ((b_msgTp == 0x10) && (b_by10 == 0x00)) {
-		Serial << F("INFO_SERIAL; serial: ") << pHex(&buf[11],10);
+			Serial << F("INFO_SERIAL; serial: "); pHex(&buf[11],10, SERIAL_DBG_PHEX_MODE_NONE);
 
 		} else if ((b_msgTp == 0x10) && (b_by10 == 0x01)) {
-		Serial << F("INFO_PEER_LIST; peer1: ") << pHex(&buf[11],4);
-		if (b_len >= 19) Serial << F(", peer2: ") << pHex(&buf[15],4);
-		if (b_len >= 23) Serial << F(", peer3: ") << pHex(&buf[19],4);
-		if (b_len >= 27) Serial << F(", peer4: ") << pHex(&buf[23],4);
+			Serial << F("INFO_PEER_LIST; peer1: "); pHex(&buf[11],4, SERIAL_DBG_PHEX_MODE_NONE);
+			if (b_len >= 19) Serial << F(", peer2: "); pHex(&buf[15],4, SERIAL_DBG_PHEX_MODE_NONE);
+			if (b_len >= 23) Serial << F(", peer3: "); pHex(&buf[19],4, SERIAL_DBG_PHEX_MODE_NONE);
+			if (b_len >= 27) Serial << F(", peer4: "); pHex(&buf[23],4, SERIAL_DBG_PHEX_MODE_NONE);
 
 		} else if ((b_msgTp == 0x10) && (b_by10 == 0x02)) {
-		Serial << F("INFO_PARAM_RESPONSE_PAIRS; data: ") << pHex(&buf[11],b_len-10);
+			Serial << F("INFO_PARAM_RESPONSE_PAIRS; data: "); pHex(&buf[11],b_len-10, SERIAL_DBG_PHEX_MODE_NONE);
 
 		} else if ((b_msgTp == 0x10) && (b_by10 == 0x03)) {
-		Serial << F("INFO_PARAM_RESPONSE_SEQ; offset: ") << pHex(&buf[11],1) << F(", data: ") << pHex(&buf[12],b_len-11);
+			Serial << F("INFO_PARAM_RESPONSE_SEQ; offset: "); pHex(&buf[11],1, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", data: "); pHex(&buf[12],b_len-11, SERIAL_DBG_PHEX_MODE_NONE);
 
 		} else if ((b_msgTp == 0x10) && (b_by10 == 0x04)) {
-		Serial << F("INFO_PARAMETER_CHANGE; cnl: ") << pHex(&buf[11],1) << F(", peer: ") << pHex(&buf[12],4) << F(", pLst: ") << pHex(&buf[16],1) << F(", data: ") << pHex(&buf[17],b_len-16);
+			Serial << F("INFO_PARAMETER_CHANGE; cnl: "); pHex(&buf[11],1, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", peer: "); pHex(&buf[12],4, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", pLst: "); pHex(&buf[16],1, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", data: "); pHex(&buf[17],b_len-16, SERIAL_DBG_PHEX_MODE_NONE);
 
 		} else if ((b_msgTp == 0x10) && (b_by10 == 0x06)) {
-		Serial << F("INFO_ACTUATOR_STATUS; cnl: ") << pHex(&buf[11],1) << F(", status: ") << pHex(&buf[12],1) << F(", na: ") << pHex(&buf[13],1);
-		if (b_len > 13) Serial << F(", rssi: ") << pHex(&buf[14],1);
-		
+			Serial << F("INFO_ACTUATOR_STATUS; cnl: "); pHex(&buf[11],1, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", status: "); pHex(&buf[12],1, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", na: "); pHex(&buf[13],1, SERIAL_DBG_PHEX_MODE_NONE);
+			if (b_len > 13) Serial << F(", rssi: "); pHex(&buf[14],1, SERIAL_DBG_PHEX_MODE_NONE);
+
 		} else if ((b_msgTp == 0x11) && (b_by10 == 0x02)) {
-		Serial << F("SET; cnl: ") << pHex(&buf[11],1) << F(", value: ") << pHex(&buf[12],1) << F(", rampTime: ") << pHex(&buf[13],2) << F(", duration: ") << pHex(&buf[15],2);
+			Serial << F("SET; cnl: "); pHex(&buf[11],1, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", value: "); pHex(&buf[12],1, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", rampTime: "); pHex(&buf[13],2, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", duration: "); pHex(&buf[15],2, SERIAL_DBG_PHEX_MODE_NONE);
 
 		} else if ((b_msgTp == 0x11) && (b_by10 == 0x03)) {
-		Serial << F("STOP_CHANGE; cnl: ") << pHex(&buf[11],1);
+			Serial << F("STOP_CHANGE; cnl: "); pHex(&buf[11],1, SERIAL_DBG_PHEX_MODE_NONE);
 
 		} else if ((b_msgTp == 0x11) && (b_by10 == 0x04) && (b_by11 == 0x00)) {
-		Serial << F("RESET");
+			Serial << F("RESET");
 
 		} else if ((b_msgTp == 0x11) && (b_by10 == 0x80)) {
-		Serial << F("LED; cnl: ") << pHex(&buf[11],1) << F(", color: ") << pHex(&buf[12],1);
+			Serial << F("LED; cnl: "); pHex(&buf[11],1, SERIAL_DBG_PHEX_MODE_NONE)
+			Serial << F(", color: "); pHex(&buf[12],1, SERIAL_DBG_PHEX_MODE_NONE);
 
 		} else if ((b_msgTp == 0x11) && (b_by10 == 0x81) && (b_by11 == 0x00)) {
-		Serial << F("LED_ALL; Led1To16: ") << pHex(&buf[12],4);
-		
+			Serial << F("LED_ALL; Led1To16: "); pHex(&buf[12],4, SERIAL_DBG_PHEX_MODE_NONE);
+
 		} else if ((b_msgTp == 0x11) && (b_by10 == 0x81)) {
-		Serial << F("LED; cnl: ") << pHex(&buf[11],1) << F(", time: ") << pHex(&buf[12],1) << F(", speed: ") << pHex(&buf[13],1);
-		
+			Serial << F("LED; cnl: "); pHex(&buf[11],1, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", time: "); pHex(&buf[12],1, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", speed: "); pHex(&buf[13],1, SERIAL_DBG_PHEX_MODE_NONE);
+
 		} else if ((b_msgTp == 0x11) && (b_by10 == 0x82)) {
-		Serial << F("SLEEPMODE; cnl: ") << pHex(&buf[11],1) << F(", mode: ") << pHex(&buf[12],1);
-		
+			Serial << F("SLEEPMODE; cnl: "); pHex(&buf[11],1, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", mode: "); pHex(&buf[12],1, SERIAL_DBG_PHEX_MODE_NONE);
+
 		} else if ((b_msgTp == 0x12)) {
-		Serial << F("HAVE_DATA");
-		
+			Serial << F("HAVE_DATA");
+
 		} else if ((b_msgTp == 0x3E)) {
-		Serial << F("SWITCH; dst: ") << pHex(&buf[10],3) << F(", na: ") << pHex(&buf[13],1) << F(", cnl: ") << pHex(&buf[14],1) << F(", counter: ") << pHex(&buf[15],1);
-		
+			Serial << F("SWITCH; dst: "); pHex(&buf[10],3, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", na: "); pHex(&buf[13],1, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", cnl: "); pHex(&buf[14],1, SERIAL_DBG_PHEX_MODE_NONE)
+			Serial << F(", counter: "); pHex(&buf[15],1, SERIAL_DBG_PHEX_MODE_NONE);
+
 		} else if ((b_msgTp == 0x3F)) {
-		Serial << F("TIMESTAMP; na: ") << pHex(&buf[10],2) << F(", time: ") << pHex(&buf[12],2);
-		
+			Serial << F("TIMESTAMP; na: "); pHex(&buf[10],2, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", time: "); pHex(&buf[12],2, SERIAL_DBG_PHEX_MODE_NONE);
+
 		} else if ((b_msgTp == 0x40)) {
-		Serial << F("REMOTE; button: ") << pHexB(buf[10] & 0x3F) << F(", long: ") << (buf[10] & 0x40 ? 1:0) << F(", lowBatt: ") << (buf[10] & 0x80 ? 1:0) << F(", counter: ") << pHexB(buf[11]);
-		
+			Serial << F("REMOTE; button: "); pHexB(buf[10] & 0x3F)
+			Serial << F(", long: "); (buf[10] & 0x40 ? 1:0)
+			Serial << F(", lowBatt: "); (buf[10] & 0x80 ? 1:0)
+			Serial << F(", counter: "); pHexB(buf[11]);
+
 		} else if ((b_msgTp == 0x41)) {
-		Serial << F("SENSOR_EVENT; button: ") <<pHexB(buf[10] & 0x3F) << F(", long: ") << (buf[10] & 0x40 ? 1:0) << F(", lowBatt: ") << (buf[10] & 0x80 ? 1:0) << F(", value: ") << pHex(&buf[11],1) << F(", next: ") << pHex(&buf[12],1);
-		
+			Serial << F("SENSOR_EVENT; button: "); pHexB(buf[10] & 0x3F)
+			Serial << F(", long: "); (buf[10] & 0x40 ? 1:0)
+			Serial << F(", lowBatt: "); (buf[10] & 0x80 ? 1:0)
+			Serial << F(", value: "); pHex(&buf[11],1, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", next: "); pHex(&buf[12],1, SERIAL_DBG_PHEX_MODE_NONE);
+
 		} else if ((b_msgTp == 0x53)) {
-		Serial << F("SENSOR_DATA; cmd: ") << pHex(&buf[10],1) << F(", fld1: ") << pHex(&buf[11],1) << F(", val1: ") << pHex(&buf[12],2) << F(", fld2: ") << pHex(&buf[14],1) << F(", val2: ") << pHex(&buf[15],2) << F(", fld3: ") << pHex(&buf[17],1) << F(", val3: ") << pHex(&buf[18],2) << F(", fld4: ") << pHex(&buf[20],1) << F(", val4: ") << pHex(&buf[21],2);
-		
+			Serial << F("SENSOR_DATA; cmd: "); pHex(&buf[10],1, SERIAL_DBG_PHEX_MODE_NONE)
+			Serial << F(", fld1: "); pHex(&buf[11],1, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", val1: "); pHex(&buf[12],2, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", fld2: "); pHex(&buf[14],1, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", val2: "); pHex(&buf[15],2, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", fld3: "); pHex(&buf[17],1, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", val3: "); pHex(&buf[18],2, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", fld4: "); pHex(&buf[20],1, SERIAL_DBG_PHEX_MODE_NONE)
+			Serial << F(", val4: "); pHex(&buf[21],2, SERIAL_DBG_PHEX_MODE_NONE);
+
 		} else if ((b_msgTp == 0x58)) {
-		Serial << F("CLIMATE_EVENT; cmd: ") << pHex(&buf[10],1) << F(", valvePos: ") << pHex(&buf[11],1);
-		
+			Serial << F("CLIMATE_EVENT; cmd: "); pHex(&buf[10],1, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", valvePos: "); pHex(&buf[11],1, SERIAL_DBG_PHEX_MODE_NONE);
+
 		} else if ((b_msgTp == 0x70)) {
-		Serial << F("WEATHER_EVENT; temp: ") << pHex(&buf[10],2) << F(", hum: ") << pHex(&buf[12],1);
+			Serial << F("WEATHER_EVENT; temp: "); pHex(&buf[10],2, SERIAL_DBG_PHEX_MODE_NONE);
+			Serial << F(", hum: "); pHex(&buf[12],1, SERIAL_DBG_PHEX_MODE_NONE);
 
 		} else {
-		Serial << F("Unknown Message, please report!");
-	}
-	Serial << F("\n\n");
+			Serial << F("Unknown Message, please report!");
+		}
+		Serial << F("\n\n");
 	#endif
 }
 
@@ -1138,8 +1197,9 @@ void     HM::recv_PairConfig(void) {
 		}
 		uint8_t payLen = recv_len - 11;												// calculate len of payload and provide the data
 		uint8_t ret = setListFromMsg(conf.channel, conf.list, conf.peer, payLen, &recv_payLoad[2]);
-		//Serial << F("we: ") << conf.wrEn << F(", cnl: ") << conf.channel << F(", lst: ") << conf.list << F(", peer: ") << pHex(conf.peer,4) << F("\n");
-		//Serial << F("pl: ") << pHex(&recv_payLoad[2],payLen) << F(", ret: ") << ret << F("\n");
+		//Serial << F("we: ") << conf.wrEn << F(", cnl: ") << conf.channel << F(", lst: ") << conf.list << F(", peer: "); pHex(conf.peer,4, SERIAL_DBG_PHEX_MODE_LF);
+		//Serial << F("pl: "); pHex(&recv_payLoad[2],payLen, SERIAL_DBG_PHEX_MODE_NONE);
+		//Serial << F(", ret: ", SERIAL_DBG_PHEX_MODE_LF);
 
 		// send appropriate answer ---------------------------------------------
 		if (recv_ackRq)  send_ACK();												// send ACK if requested
@@ -1310,7 +1370,8 @@ uint8_t  HM::isPeerKnown(uint8_t *peer) {
 }
 
 uint8_t  HM::isPairKnown(uint8_t *pair) {
-	//Serial << F("x:") << pHex(dParm.MAID,3) << F(" y:") << pHex(pair,3) << F("\n");
+	//Serial << F("x:"); pHex(dParm.MAID,3, SERIAL_DBG_PHEX_MODE_NONE);
+	//Serial << F(" y:"); pHex(pair,3, SERIAL_DBG_PHEX_MODE_LF, SERIAL_DBG_PHEX_MODE_NONE);
 	if (memcmp(dParm.MAID, bCast, 3) == 0) return 1;									// return 1 while not paired
 	
 	if (memcmp(dParm.MAID, pair, 3) == 0) return 1;										// check against regDev
@@ -1393,7 +1454,7 @@ uint8_t  HM::getPeerForMsg(uint8_t cnl, uint8_t *buf) {
 		//Serial << F("start: ") << start << F(", len: ") << len << F(", pos: ") << (cnt-start) << F("\n");
 		if (peerL != 0) {																// if we found an filled block
 
-			//Serial << F("i: ") << cnt << F("pL: ") << pHex((uint8_t*)&peerL,4) << F("\n");
+			//Serial << F("i: ") << cnt << F("pL: "); pHex((uint8_t*)&peerL,4, SERIAL_DBG_PHEX_MODE_LF);
 			memcpy(&buf[cnt], (uint8_t*)&peerL, 4);										// copy the content
 			cnt+=4;																		// increase the pointer to buffer for next time
 		}
@@ -1465,7 +1526,8 @@ uint8_t  HM::setListFromMsg(uint8_t cnl, uint8_t lst, uint8_t *peer, uint8_t len
 		void *x = memchr(&dDef.slPtr[slcAddr], buf[i], _pgmB(&t->sLen));				// find the byte in slcStr
 		if ((uint16_t)x == 0) continue;													// got no result, try next
 		pIdx = (uint8_t)((uint16_t)x - (uint16_t)&dDef.slPtr[slcAddr]);					// calculate the relative position
-		//Serial << F("x: ") << pHexB(buf[i])  << F(", ad: ") << pIdx << F("\n");
+		//Serial << F("x: "); pHexB(buf[i]);
+		//Serial << F(", ad: ") << pIdx << F("\n");
 		setEeBy(regAddr+pIdx,buf[i+1]);													// write the bytes to the respective address
 	}
 	return 1;
@@ -1497,7 +1559,7 @@ void     HM::getCnlListByPeerIdx(uint8_t cnl, uint8_t peerIdx) {
 	getEeBl(addr, _pgmB(&t->sLen), (void*)_pgmW(&t->pRegs));							// load content from eeprom
 	
 	#if defined(SM_DBG)																	// some debug message
-	Serial << F("Loading list3/4 for cnl: ") << cnl << F(", peer: ") << pHex(peer,4) << F("\n");
+	Serial << F("Loading list3/4 for cnl: ") << cnl << F(", peer: "); pHex(peer,4, SERIAL_DBG_PHEX_MODE_LF);
 	#endif
 }
 void     HM::setListFromModule(uint8_t cnl, uint8_t peerIdx, uint8_t *data, uint8_t len) {

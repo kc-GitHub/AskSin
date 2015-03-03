@@ -111,9 +111,9 @@ void Buttons::pairSetEvent(uint8_t *data, uint8_t len) {
 	// 1st byte = value; 2nd byte = ramp time; 3rd byte = duration time;
 	// after setting the new value we have to send an enhanced ACK (<- 0E E7 80 02 1F B7 4A 63 19 63 01 01 C8 00 54)
 	#ifdef DM_DBG
-		Serial << F("pairSetEvent, value:") << pHexB(data[0]);
-		if (len > 1) Serial << F(", rampTime: ") << pHexB(data[1]);
-		if (len > 2) Serial << F(", duraTime: ") << pHexB(data[2]);
+		Serial << F("pairSetEvent, value:"); pHexB(data[0]);
+		if (len > 1) Serial << F(", rampTime: "); pHexB(data[1]);
+		if (len > 2) Serial << F(", duraTime: "); pHexB(data[2]);
 		Serial << F("\n");
 	#endif
 		
@@ -133,7 +133,8 @@ void Buttons::peerMsgEvent(uint8_t type, uint8_t *data, uint8_t len) {
 	// we received a peer event, in type you will find the marker if it was a switch(3E), remote(40) or sensor(41) event
 	// appropriate answer is an ACK
 	#ifdef DM_DBG
-	Serial << F("peerMsgEvent, type: ")  << pHexB(type) << F(", data: ")  << pHex(data,len) << F("\n");
+		Serial << F("peerMsgEvent, type: "); pHexB(type);
+		Serial << F(", data: "); pHex(data,len, SERIAL_DBG_PHEX_MODE_LF);
 	#endif
 	
 	hm->send_ACK();
@@ -281,7 +282,11 @@ void Buttons::peerAddEvent(uint8_t *data, uint8_t len) {
 	// 1st byte and 2nd byte shows the peer channel, 3rd and 4th byte gives the peer index
 	// no need for sending an answer, but we could set default data to the respective list3/4
 	#ifdef DM_DBG
-		Serial << F("peerAddEvent: pCnl1: ") << pHexB(data[0]) << F(", pCnl2: ") << pHexB(data[1]) << F(", pIdx1: ") << pHexB(data[2]) << F(", pIdx2: ") << pHexB(data[3]) << F("\n");
+		Serial << F("peerAddEvent: pCnl1: "); pHexB(data[0]);
+		Serial << F(", pCnl2: "); pHexB(data[1]);
+		Serial << F(", pIdx1: "); pHexB(data[2]);
+		Serial << F(", pIdx2: "); pHexB(data[3]);
+		Serial << F("\n");
 	#endif
 	
 	if ((data[0]) && (data[1])) {																		// dual peer add
