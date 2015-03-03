@@ -209,11 +209,11 @@ void pHex(uint8_t *buf, uint8_t len, uint8_t mode) {
 		pHexB(buf[i]);
 		if(i+1 < len) Serial << F(" ");
 	}
-	if (mode && SERIAL_DBG_PHEX_MODE_LEN) Serial << F(" (l:") << len << F(")");
-	if (mode && SERIAL_DBG_PHEX_MODE_TIME) pTime();
-	if (mode && SERIAL_DBG_PHEX_MODE_LF) Serial << F("\n");
+	if (mode & SERIAL_DBG_PHEX_MODE_LEN) Serial << F(" (L:") << len << F(")");
+	if (mode & SERIAL_DBG_PHEX_MODE_TIME) pTime();
+	if (mode & SERIAL_DBG_PHEX_MODE_LF) Serial << F("\n");
 }
 
 void pTime(void) {
-	Serial << F(" (") << millis() << F(")\n");
+	Serial << F(" (M:") << millis() << F(")\n");
 }

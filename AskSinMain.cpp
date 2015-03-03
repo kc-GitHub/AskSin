@@ -660,7 +660,7 @@ void     HM::send_poll(void) {															// handles the send queue
 		}
 
 		#if defined(AS_DBG)
-			Serial << F("-> NA "); pTime();
+			Serial << F("-> NA "); pTime(); _delay_ms(10);
 		#endif
 	}
 
