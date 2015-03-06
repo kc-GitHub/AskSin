@@ -38,7 +38,9 @@ class Battery {
 	uint16_t tTime;																		// remember the time for periodic check
 	uint32_t nTime;																		// timer for periodic check
 	uint8_t  tTenthVolts;																// remember the tenth volts set
+	uint8_t oldVoltage;																	// old last measured battery voltage
 
+	#define BATTERY_STATE_HYSTERESIS          1											// battery state should reset only if voltage rise greater than given value
 	#define BATTERY_NUM_MESS_ADC              64
 	#define BATTERY_DUMMY_NUM_MESS_ADC        10
 	#define AVR_BANDGAP_VOLTAGE               1100UL									// Band gap reference for Atmega328p

@@ -55,13 +55,13 @@ void Battery::poll(void) {
 		voltage = getBatteryVoltageExternal();
 	}
 
+	if ((voltage > oldVoltage && (voltage - oldVoltage) > BATTERY_STATE_HYSTERESIS) || voltage < oldVoltage) {
+		oldVoltage = voltage;
+		state = (voltage < tTenthVolts) ? 1 : 0;									// set the battery status
+	}
 
-	state = (voltage < tTenthVolts) ? 1 : 0;							// set the battery status
 	nTime = millis();
 
-	//hfm debug
-//	Serial.print ("batteryVoltage: "); Serial.println (voltage);
-//	_delay_ms(10);
 }
 
 /**
@@ -95,7 +95,6 @@ uint8_t Battery::getBatteryVoltageExternal() {
 
 	return adcValue;
 }
-
 
 uint16_t Battery::getAdcValue(uint8_t voltageReference, uint8_t inputChannel) {
 	uint16_t adcValue = 0;
