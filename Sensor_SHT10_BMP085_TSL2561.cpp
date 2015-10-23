@@ -146,29 +146,66 @@ void SHT10_BMP085_TSL2561::poll(void) {
 
 	//Serial.print("nAction: "); Serial.println(nAction); _delay_ms(50);
 
-	if (nAction == SHT10_BMP085_TSL2561_nACTION_MEASURE_INIT) {
+	#ifdef US_100
+		tLux = us100Measuer();
+		Serial.print("Distance: "); Serial.print(tLux); Serial.println(" mm");
 
-		if (poll_measureLightInit()){
-			nAction = SHT10_BMP085_TSL2561_nACTION_MEASURE_L;
+		poll_transmit();													// transmit
 
-		} else {
-			tLux = 6553800;														// send 65538 Lux if no sensor available
-			nAction = SHT10_BMP085_TSL2561_nACTION_MEASURE_THP;
+	#else
+		if (nAction == SHT10_BMP085_TSL2561_nACTION_MEASURE_INIT) {
+
+			if (poll_measureLightInit()){
+				nAction = SHT10_BMP085_TSL2561_nACTION_MEASURE_L;
+
+			} else {
+				tLux = 6553800;														// send 65538 Lux if no sensor available
+				nAction = SHT10_BMP085_TSL2561_nACTION_MEASURE_THP;
+			}
+
+		} else if (nAction == SHT10_BMP085_TSL2561_nACTION_MEASURE_L) {
+			// next nTime should set via tsl2561_ISR only
+
+		} else if (nAction == SHT10_BMP085_TSL2561_nACTION_CALC_L) {
+			poll_measureCalcLight();
+
+		} else if (nAction == SHT10_BMP085_TSL2561_nACTION_MEASURE_THP) {
+			poll_measureTHP();
+
+		} else if (nAction == SHT10_BMP085_TSL2561_nACTION_TRANSMIT) {
+			poll_transmit();													// transmit
+		}
+#endif
+
+}
+
+#ifdef US_100
+	uint32_t SHT10_BMP085_TSL2561::us100Measuer() {
+		unsigned long echoTime   = 0;
+		uint32_t distanceMM = 0;
+
+		digitalWrite(US_100_PIN_VCC, HIGH);										// power on the US-100
+		_delay_ms(500);
+
+		digitalWrite(US_100_PIN_TRIGGER, HIGH);									// Send pulses begin by trigger pin
+		_delay_us(50);															// Set the pulse width of 50us
+		digitalWrite(US_100_PIN_TRIGGER, LOW);									// The end of the pulse and start measure
+
+		echoTime = pulseIn(US_100_PIN_ECHO, HIGH);								// A pulse width calculating US-100 returned
+		if((echoTime < 60000) && (echoTime > 1)) {								// Pulse effective range (1, 60000).
+
+			// distanceMM = (echoTime * 0.34mm/us) / 2 (mm)
+			distanceMM = (echoTime*34/100)/2;                   // Calculating the distance by a pulse width.
+
+			// debug output
 		}
 
-	} else if (nAction == SHT10_BMP085_TSL2561_nACTION_MEASURE_L) {
-		// next nTime should set via tsl2561_ISR only
+		digitalWrite(US_100_PIN_VCC, LOW);										// power off the US-100
+		_delay_ms(50);
 
-	} else if (nAction == SHT10_BMP085_TSL2561_nACTION_CALC_L) {
-		poll_measureCalcLight();
-
-	} else if (nAction == SHT10_BMP085_TSL2561_nACTION_MEASURE_THP) {
-		poll_measureTHP();
-
-	} else if (nAction == SHT10_BMP085_TSL2561_nACTION_TRANSMIT) {
-		poll_transmit();													// transmit
+		return distanceMM;
 	}
-}
+#endif
 
 uint8_t SHT10_BMP085_TSL2561::poll_measureLightInit() {
 	// check if TSL2561 available

@@ -25,6 +25,14 @@
 #include <BMP085.h>
 #include <TSL2561.h>
 
+#define US_100
+#ifdef US_100
+	#define US_100_PIN_VCC         5
+	#define US_100_PIN_GND         9
+	#define US_100_PIN_TRIGGER     6
+	#define US_100_PIN_ECHO        7
+#endif
+
 #define SHT10_BMP085_TSL2561 Sensors_SHT10_BMP085_TSL2561						// module name as macro to overcome the problem of renaming functions all the time
 //#define DM_DBG																// debug message flag
 
@@ -101,6 +109,8 @@ class SHT10_BMP085_TSL2561 {
 		void     poll_measureCalcLight(void);
 		void     poll_measureTHP(void);
 		void     poll_transmit(void);
+
+		uint32_t us100Measuer();
 };
 
 
