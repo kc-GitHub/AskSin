@@ -34,7 +34,7 @@ void     HM::init(void) {
 	#if USE_ADRESS_SECTION == 1
 		memcpy(hmId, &dParm.p[17], 3);											// initialize hmId
 	#else
-		memcpy_P(hmId, &dParm.p[17], 3);										// initialize hmId
+		memcpy(hmId, &dParm.p[17], 3);										// initialize hmId
 	#endif
 
 	hm.stayAwake(1000);
@@ -348,7 +348,7 @@ void     HM::startPairing(void) {
 	#if USE_ADRESS_SECTION == 1
 		memcpy(send_payLoad, dParm.p, 17);										// copy details out of register.h
 	#else
-		memcpy_P(send_payLoad, dParm.p, 17);									// copy details out of register.h
+		memcpy(send_payLoad, dParm.p, 17);									// copy details out of register.h
 	#endif
 
 	send_prep(send.mCnt++,0xA2,0x00,dParm.MAID ,send_payLoad,17);
@@ -1219,7 +1219,7 @@ void     HM::recv_PairConfig(void) {
 		#if USE_ADRESS_SECTION == 1
 			memcpy(&send_payLoad[1], &dParm.p[3], 11);								// copy details out of register.h
 		#else
-			memcpy_P(&send_payLoad[1], &dParm.p[3], 11);							// copy details out of register.h
+			memcpy(&send_payLoad[1], &dParm.p[3], 11);							// copy details out of register.h
 		#endif
 
 		send_prep(recv_rCnt,0x80,0x10,recv_reID,send_payLoad,11);					// prepare the message
@@ -1231,7 +1231,7 @@ void     HM::recv_PairConfig(void) {
 			
 		// do something with the information ----------------------------------
 		// compare serial number with own serial number and send pairing string back
-		if (memcmp_P(&recv_payLoad[2], &dParm.p[3], 10) != 0) return;
+		if (memcmp(&recv_payLoad[2], &dParm.p[3], 10) != 0) return;
 
 		// send appropriate answer ---------------------------------------------
 		// l> 1A 01 A2 00 3F A6 5C 00 00 00 10 80 02 50 53 30 30 30 30 30 30 30 31 9F 04 01 01
