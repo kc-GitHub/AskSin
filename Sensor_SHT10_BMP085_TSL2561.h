@@ -25,7 +25,7 @@
 #include <BMP085.h>
 #include <TSL2561.h>
 
-#define US_100
+//#define US_100
 #ifdef US_100
 	#define US_100_PIN_VCC         5
 	#define US_100_PIN_GND         9
