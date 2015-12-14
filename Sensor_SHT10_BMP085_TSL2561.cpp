@@ -147,6 +147,8 @@ void SHT10_BMP085_TSL2561::poll(void) {
 	//Serial.print("nAction: "); Serial.println(nAction); _delay_ms(50);
 
 	#ifdef US_100
+		poll_measureTHP();
+
 		tLux = us100Measuer();
 		Serial.print("Distance: "); Serial.print(tLux); Serial.println(" mm");
 
