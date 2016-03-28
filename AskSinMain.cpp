@@ -319,7 +319,7 @@ void     HM::regCnlModule(uint8_t cnl, s_mod_dlgt Delegate, uint16_t *mainList, 
 }
 
 uint32_t HM::getHMID(void) {
-	uint8_t a[3];
+	uint8_t a[4];
 	a[0] = hmId[2];
 	a[1] = hmId[1];
 	a[2] = hmId[0];
