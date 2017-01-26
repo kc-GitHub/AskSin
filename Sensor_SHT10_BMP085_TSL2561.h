@@ -33,6 +33,16 @@
 	#define US_100_PIN_ECHO        7
 #endif
 
+#define ADC_MEAESURE 1
+#ifdef ADC_MEAESURE
+	#define ADC_PIN_EXT_VCC        5
+	#define ADC_PIN                2
+	#define ADC_NUM_MESS           64
+	#define ADC_DUMMY_NUM_MESS     10
+
+#endif
+
+
 #define SHT10_BMP085_TSL2561 Sensors_SHT10_BMP085_TSL2561						// module name as macro to overcome the problem of renaming functions all the time
 //#define DM_DBG																// debug message flag
 
@@ -111,6 +121,7 @@ class SHT10_BMP085_TSL2561 {
 		void     poll_transmit(void);
 
 		uint32_t us100Measuer();
+		uint32_t adcMeasuer();
 };
 
 

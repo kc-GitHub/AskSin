@@ -54,6 +54,10 @@ void SHT10_BMP085_TSL2561::poll_transmit(void) {
 	} else {
 		nTime = (calcSendSlot() * 250) - SHT10_BMP085_TSL2561_MAX_MEASURE_TIME; 		// calculate the next send slot by multiplying with 250ms to get the time in millis
 	}
+	// for debugging
+	// nTime = 15000;
+	// nTime = 600000;
+
 	startTime = millis();
 
 	hm->sendPeerWEATHER(regCnl, tTemp, tHum, tPres, tLux);								// send out the weather event
@@ -153,8 +157,19 @@ void SHT10_BMP085_TSL2561::poll(void) {
 		Serial.print("Distance: "); Serial.print(tLux); Serial.println(" mm");
 
 		poll_transmit();													// transmit
+	#endif
 
-	#else
+	#ifdef ADC_MEAESURE
+		poll_measureTHP();
+
+		tLux = adcMeasuer();
+		Serial.print("AD-Value: "); Serial.print(tLux);
+
+		poll_transmit();													// transmit
+	#endif
+
+	#ifndef US_100
+	  #ifndef ADC_MEAESURE
 		if (nAction == SHT10_BMP085_TSL2561_nACTION_MEASURE_INIT) {
 
 			if (poll_measureLightInit()){
@@ -177,7 +192,8 @@ void SHT10_BMP085_TSL2561::poll(void) {
 		} else if (nAction == SHT10_BMP085_TSL2561_nACTION_TRANSMIT) {
 			poll_transmit();													// transmit
 		}
-#endif
+	  #endif
+	#endif
 
 }
 
@@ -206,6 +222,37 @@ void SHT10_BMP085_TSL2561::poll(void) {
 		_delay_ms(50);
 
 		return distanceMM;
+	}
+#endif
+
+#ifdef ADC_MEAESURE
+	uint32_t SHT10_BMP085_TSL2561::adcMeasuer() {
+		uint16_t adcValue = 0;
+
+		digitalWrite(ADC_PIN_EXT_VCC, HIGH);									// power on external hardware, maybe we need this
+		_delay_ms(500);
+
+		ADMUX = ((1 << REFS1) | (1 << REFS0) | ADC_PIN);						// Voltage Reference = Internal 1.1V Voltage Reference
+		ADCSRA = (1 << ADEN) | (1 << ADPS2) | (1 << ADPS1);						// Enable ADC and set ADC prescaler
+
+		for(int i = 0; i < (ADC_NUM_MESS + ADC_DUMMY_NUM_MESS); i++) {
+			ADCSRA |= (1 << ADSC);												// start conversion
+			while (ADCSRA & (1 << ADSC)) {}										// wait for conversion complete
+
+			if (i >= ADC_DUMMY_NUM_MESS) {										// we discard the first dummy measurements
+				adcValue += ADCW;
+			}
+		}
+
+		ADCSRA &= ~(1 << ADEN);													// ADC disable
+		adcValue = adcValue / ADC_NUM_MESS;
+
+		return adcValue;
+
+		digitalWrite(ADC_PIN_EXT_VCC, LOW);										// power off external hardware
+		_delay_ms(50);
+
+		return adcValue;
 	}
 #endif
 
